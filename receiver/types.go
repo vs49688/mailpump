@@ -22,7 +22,7 @@ import (
 	"crypto/tls"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
-	imap2 "mailpump/imap"
+	imap2 "github.com/vs49688/mailpump/imap"
 	"time"
 )
 

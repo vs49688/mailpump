@@ -1,4 +1,4 @@
-module mailpump
+module github.com/vs49688/mailpump
 
 go 1.17
 

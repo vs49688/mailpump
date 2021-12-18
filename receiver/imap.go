@@ -21,7 +21,7 @@ package receiver
 import (
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
-	imap2 "mailpump/imap"
+	imap2 "github.com/vs49688/mailpump/imap"
 )
 
 func doFetch(client imap2.Client, result chan<- interface{}) bool {

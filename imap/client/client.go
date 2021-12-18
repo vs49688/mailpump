@@ -20,7 +20,7 @@ package client
 
 import (
 	"github.com/emersion/go-imap/client"
-	"mailpump/imap"
+	"github.com/vs49688/mailpump/imap"
 	"os"
 )
 

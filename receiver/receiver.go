@@ -21,7 +21,7 @@ package receiver
 import (
 	client2 "github.com/emersion/go-imap/client"
 	log "github.com/sirupsen/logrus"
-	imap2 "mailpump/imap"
+	imap2 "github.com/vs49688/mailpump/imap"
 	"time"
 )
 

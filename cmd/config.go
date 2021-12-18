@@ -21,7 +21,7 @@ package cmd
 import (
 	"crypto/tls"
 	"errors"
-	"mailpump/pump"
+	"github.com/vs49688/mailpump/pump"
 	"net"
 	"time"
 

@@ -21,9 +21,9 @@ package pump
 import (
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
-	"mailpump/imap/persistentclient"
-	"mailpump/ingest"
-	"mailpump/receiver"
+	"github.com/vs49688/mailpump/imap/persistentclient"
+	"github.com/vs49688/mailpump/ingest"
+	"github.com/vs49688/mailpump/receiver"
 )
 
 func NewMailPump(cfg *Config) (*MailPump, error) {

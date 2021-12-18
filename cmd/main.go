@@ -21,7 +21,7 @@ package cmd
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"mailpump/pump"
+	"github.com/vs49688/mailpump/pump"
 	"os"
 	"os/signal"
 	"syscall"

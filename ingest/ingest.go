@@ -22,7 +22,7 @@ import (
 	"errors"
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
-	imap2 "mailpump/imap"
+	imap2 "github.com/vs49688/mailpump/imap"
 	"sync/atomic"
 )
 

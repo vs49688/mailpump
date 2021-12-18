@@ -21,8 +21,8 @@ package pump
 import (
 	"crypto/tls"
 	"github.com/emersion/go-imap"
-	"mailpump/ingest"
-	"mailpump/receiver"
+	"github.com/vs49688/mailpump/ingest"
+	"github.com/vs49688/mailpump/receiver"
 	"time"
 )
 

@@ -26,14 +26,16 @@ import (
 	"github.com/emersion/go-message"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"mailpump/imap/client"
 	"mailpump/imap/persistentclient"
+	"mailpump/ingest"
 	"net"
 	"strings"
 	"testing"
 	"time"
 )
 
-func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox) {
+func BuildTestIMAPServer(t *testing.T) (*server.Server, string) {
 	be := memory.New()
 	user, err := be.Login(nil, "username", "password")
 	assert.NoError(t, err)
@@ -61,7 +63,7 @@ func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox)
 
 	go func() { err = s.Serve(l) }()
 
-	return s, l.Addr().String(), mailbox
+	return s, l.Addr().String()
 }
 
 func makeTestMessage(t *testing.T, messageID string) (*imap.Message, int32) {
@@ -94,58 +96,40 @@ func makeTestMessage(t *testing.T, messageID string) (*imap.Message, int32) {
 	return imsg, int32(bb.Len())
 }
 
-func addTestMessage(t *testing.T, mbox *memory.Mailbox, uid uint32, messageID string) {
-	hdr := message.Header{}
-	hdr.Add("From", "from@example.com")
-	hdr.Add("To", "to@example.com")
-	hdr.Add("Subject", "Test Email")
-	hdr.Add("Date", "Wed, 11 May 2016 14:31:59 +0000")
-	hdr.Add("Content-Type", "text/plain")
-	hdr.Add("Message-ID", messageID)
-
-	msg, err := message.New(hdr, strings.NewReader("Привет!"))
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	bb := new(bytes.Buffer)
-	_ = msg.WriteTo(bb)
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	data := bb.Bytes()
-
-	mbox.Messages = append(mbox.Messages, &memory.Message{
-		Uid:   uid,
-		Date:  time.Now(),
-		Size:  uint32(len(data)),
-		Flags: []string{"\\Seen"},
-		Body:  data,
-	})
-}
-
 func TestReceiver(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 
-	imapServer, addr, mailbox := BuildTestIMAPServer(t)
+	imapServer, addr := BuildTestIMAPServer(t)
 	defer imapServer.Close()
 
-	// Add an initial message, the receiver should check this
-	addTestMessage(t, mailbox, 1, "<01@localhost>")
-
-	ch := make(chan *imap.Message, 1)
-	receiver, err := NewReceiver(&Config{
+	ingCh := make(chan error)
+	ing, err := ingest.NewClient(&ingest.Config{
 		HostPort:  addr,
 		Username:  "username",
 		Password:  "password",
 		Mailbox:   "INBOX",
 		TLS:       false,
 		TLSConfig: nil,
-		Channel:   ch,
-		Debug:     true,
+		Debug:     false,
+		DoneChan:  ingCh,
+	}, &client.Factory{})
+
+	// Add an initial message, the receiver should check this
+	testMsg, _ := makeTestMessage(t, "<01@localhost>")
+	testMsg.Uid = 1
+	err = ing.IngestMessageSync(testMsg)
+	assert.NoError(t, err)
+
+	ch := make(chan *imap.Message, 1)
+	receiver, err := NewReceiver(&Config{
+		HostPort:     addr,
+		Username:     "username",
+		Password:     "password",
+		Mailbox:      "INBOX",
+		TLS:          false,
+		TLSConfig:    nil,
+		Channel:      ch,
+		Debug:        true,
 		TickInterval: 1 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
@@ -159,7 +143,11 @@ func TestReceiver(t *testing.T) {
 
 	// Add another message, the receiver should receive it via IDLE
 	// or a force-fetch via timeout
-	addTestMessage(t, mailbox, 2, "<02@localhost>")
-	msg = <- ch
+	testMsg, _ = makeTestMessage(t, "<02@localhost>")
+	testMsg.Uid = 2
+	err = ing.IngestMessageSync(testMsg)
+	assert.NoError(t, err)
+
+	msg = <-ch
 	receiver.Ack(msg.Uid, nil)
 }

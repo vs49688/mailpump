@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  dovecot:
+    image: dovecot/dovecot:2.3.17.1
+    ports:
+      - "1143:143"
+      - "1993:993"

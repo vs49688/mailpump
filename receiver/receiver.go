@@ -65,8 +65,8 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 	}
 
 	mr := &MailReceiver{
-		client:  c,
-		updates: updateChannel,
+		client:        c,
+		updates:       updateChannel,
 		imapChannel:   make(chan interface{}),
 		ackChannel:    make(chan ackRequest, 10),
 		updateChannel: make(chan *messageState, 10),
@@ -350,7 +350,7 @@ func (mr *MailReceiver) run() {
 
 		if quitFlag.IsFlagged() {
 			if len(nextToProcess) > 0 || len(mr.messages) > 0 {
-				opChan <- struct {}{}
+				opChan <- struct{}{}
 				continue
 			}
 

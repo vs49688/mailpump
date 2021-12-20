@@ -47,7 +47,7 @@ type idleRequest struct {
 
 type selectResponse struct {
 	status *imap.MailboxStatus
-	err error
+	err    error
 }
 
 type selectRequest struct {

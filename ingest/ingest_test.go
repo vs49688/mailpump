@@ -63,7 +63,6 @@ func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox)
 	return s, l.Addr().String(), mailbox
 }
 
-
 func makeTestMessage(t *testing.T, messageID string) (*imap.Message, []byte, int32) {
 	rfc822Section, _ := imap.ParseBodySectionName(imap.FetchRFC822)
 
@@ -92,7 +91,6 @@ func makeTestMessage(t *testing.T, messageID string) (*imap.Message, []byte, int
 	imsg.Body[rfc822Section] = imap.Literal(bb)
 	return imsg, bb.Bytes(), int32(bb.Len())
 }
-
 
 func runIngestTest(t *testing.T, f func(string) (*Client, error)) {
 	srv, addr, mailbox := BuildTestIMAPServer(t)

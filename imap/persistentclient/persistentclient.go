@@ -297,6 +297,9 @@ func (c *PersistentIMAPClient) drainRequests() {
 	count := 0
 	for {
 		select {
+		case req := <-c.logoutChannel:
+			count += 1
+			req.r <- nil
 		case _req := <-c.ch:
 			count += 1
 			switch req := _req.(type) {

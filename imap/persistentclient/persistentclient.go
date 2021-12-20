@@ -37,7 +37,9 @@ func (c *PersistentIMAPClient) isShutdown() bool {
 }
 
 func (c *PersistentIMAPClient) Idle(stop <-chan struct{}, opts *goImapClient.IdleOptions) error {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_idle_invoked")
+	if shutdown {
 		return errConnectionClosed
 	}
 
@@ -51,7 +53,9 @@ func (c *PersistentIMAPClient) Idle(stop <-chan struct{}, opts *goImapClient.Idl
 }
 
 func (c *PersistentIMAPClient) Select(name string, readOnly bool) (*imap.MailboxStatus, error) {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_select_invoked")
+	if shutdown {
 		return nil, errConnectionClosed
 	}
 
@@ -66,7 +70,9 @@ func (c *PersistentIMAPClient) Select(name string, readOnly bool) (*imap.Mailbox
 }
 
 func (c *PersistentIMAPClient) Fetch(seqset *imap.SeqSet, items []imap.FetchItem, ch chan *imap.Message) error {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_fetch_invoked")
+	if shutdown {
 		return errConnectionClosed
 	}
 
@@ -81,7 +87,9 @@ func (c *PersistentIMAPClient) Fetch(seqset *imap.SeqSet, items []imap.FetchItem
 }
 
 func (c *PersistentIMAPClient) Expunge(ch chan uint32) error {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_expunge_invoked")
+	if shutdown {
 		return errConnectionClosed
 	}
 
@@ -94,7 +102,9 @@ func (c *PersistentIMAPClient) Expunge(ch chan uint32) error {
 }
 
 func (c *PersistentIMAPClient) UidStore(seqset *imap.SeqSet, item imap.StoreItem, value interface{}, ch chan *imap.Message) error {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_uidstore_invoked")
+	if shutdown {
 		return errConnectionClosed
 	}
 
@@ -110,7 +120,9 @@ func (c *PersistentIMAPClient) UidStore(seqset *imap.SeqSet, item imap.StoreItem
 }
 
 func (c *PersistentIMAPClient) Append(mbox string, flags []string, date time.Time, msg imap.Literal) error {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_append_invoked")
+	if shutdown {
 		return errConnectionClosed
 	}
 
@@ -126,7 +138,10 @@ func (c *PersistentIMAPClient) Append(mbox string, flags []string, date time.Tim
 }
 
 func (c *PersistentIMAPClient) Mailbox() *imap.MailboxStatus {
-	if c.isShutdown() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_mailbox_invoked")
+	if shutdown {
+		// TODO: track the selection state properly and return nil if neededq
 		return &imap.MailboxStatus{Name: c.cfg.Mailbox}
 	}
 
@@ -136,8 +151,10 @@ func (c *PersistentIMAPClient) Mailbox() *imap.MailboxStatus {
 }
 
 func (c *PersistentIMAPClient) Logout() error {
-	if c.isShutdown() {
-		return errConnectionClosed
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_logout_invoked")
+	if shutdown {
+		return nil
 	}
 
 	r := make(chan error)

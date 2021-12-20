@@ -73,6 +73,7 @@ func (c *PersistentIMAPClient) Fetch(seqset *imap.SeqSet, items []imap.FetchItem
 	shutdown := c.isShutdown()
 	c.log().WithField("shutdown", shutdown).Trace("pimap_fetch_invoked")
 	if shutdown {
+		close(ch)
 		return errConnectionClosed
 	}
 
@@ -90,6 +91,7 @@ func (c *PersistentIMAPClient) Expunge(ch chan uint32) error {
 	shutdown := c.isShutdown()
 	c.log().WithField("shutdown", shutdown).Trace("pimap_expunge_invoked")
 	if shutdown {
+		close(ch)
 		return errConnectionClosed
 	}
 

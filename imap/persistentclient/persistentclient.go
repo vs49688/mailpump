@@ -288,16 +288,16 @@ func (c *PersistentIMAPClient) run() {
 done:
 	c.c = nil
 	atomic.StoreInt32(&c.shutdown, 1)
-	drainRequests(c.ch, c.cfg.Mailbox)
+	c.drainRequests()
 	close(c.loggedOut)
 	c.log().Trace("pimap_proc_exit")
 }
 
-func drainRequests(ch chan interface{}, mbox string) {
+func (c *PersistentIMAPClient) drainRequests() {
 	count := 0
 	for {
 		select {
-		case _req := <-ch:
+		case _req := <-c.ch:
 			count += 1
 			switch req := _req.(type) {
 			case idleRequest:
@@ -311,14 +311,14 @@ func drainRequests(ch chan interface{}, mbox string) {
 			case appendRequest:
 				req.r <- errConnectionClosed
 			case mailboxRequest:
-				req.r <- &imap.MailboxStatus{Name: mbox}
+				req.r <- &imap.MailboxStatus{Name: c.cfg.Mailbox}
 			}
 		default:
 			goto done
 		}
 	}
 done:
-	close(ch)
+	close(c.ch)
 	//c.log().WithField("count", count).Trace("pimap_drained_requests")
 }
 

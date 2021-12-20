@@ -44,6 +44,8 @@ type Client interface {
 	Logout() error
 
 	LoggedOut() <-chan struct{}
+
+	FlagQuit()
 }
 
 type ClientConfig struct {

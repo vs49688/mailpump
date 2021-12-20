@@ -22,6 +22,7 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/vs49688/mailpump/imap"
 	"os"
+	"time"
 )
 
 type Factory struct{}
@@ -57,5 +58,49 @@ func (f *Factory) NewClient(cfg *imap.ClientConfig) (imap.Client, error) {
 	}
 
 	wantCleanup = false
-	return c, nil
+	return &standardClient{c: c}, nil
+}
+
+type standardClient struct {
+	c *client.Client
+}
+
+func (c *standardClient) Select(name string, readOnly bool) (*imap.MailboxStatus, error) {
+	return c.c.Select(name, readOnly)
+}
+
+func (c *standardClient) Idle(stop <-chan struct{}, opts *client.IdleOptions) error {
+	return c.c.Idle(stop, opts)
+}
+
+func (c *standardClient) Fetch(seqset *imap.SeqSet, items []imap.FetchItem, ch chan *imap.Message) error {
+	return c.c.Fetch(seqset, items, ch)
+}
+
+func (c *standardClient) Expunge(ch chan uint32) error {
+	return c.c.Expunge(ch)
+}
+
+func (c *standardClient) UidStore(seqset *imap.SeqSet, item imap.StoreItem, value interface{}, ch chan *imap.Message) error {
+	return c.c.UidStore(seqset, item, value, ch)
+}
+
+func (c *standardClient) Append(mbox string, flags []string, date time.Time, msg imap.Literal) error {
+	return c.c.Append(mbox, flags, date, msg)
+}
+
+func (c *standardClient) Mailbox() *imap.MailboxStatus {
+	return c.c.Mailbox()
+}
+
+func (c *standardClient) Logout() error {
+	return c.c.Logout()
+}
+
+func (c *standardClient) LoggedOut() <-chan struct{} {
+	return c.c.LoggedOut()
+}
+
+func (c *standardClient) FlagQuit() {
+	/* nop */
 }

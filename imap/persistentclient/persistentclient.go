@@ -168,6 +168,16 @@ func (c *PersistentIMAPClient) LoggedOut() <-chan struct{} {
 	return c.loggedOut
 }
 
+func (c *PersistentIMAPClient) FlagQuit() {
+	shutdown := c.isShutdown()
+	c.log().WithField("shutdown", shutdown).Trace("pimap_flagquit_invoked")
+	if shutdown {
+		return
+	}
+
+	go c.Logout()
+}
+
 func (c *PersistentIMAPClient) log() *log.Entry {
 	return log.WithField("url", c.logURL)
 }

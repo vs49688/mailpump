@@ -231,7 +231,7 @@ func (mr *MailReceiver) run() {
 	opChan <- nil
 
 	for {
-		log.Trace("receiver_loop_start")
+		log.WithField("state", state).Trace("receiver_loop_start")
 		select {
 		case <-mr.wantQuit:
 			log.Trace("receiver_xx_want_quit")
@@ -367,6 +367,7 @@ func (mr *MailReceiver) run() {
 	}
 
 	mr.hasQuit <- struct{}{}
+	log.Trace("receiver_proc_quit")
 }
 
 func (mr *MailReceiver) Close() {

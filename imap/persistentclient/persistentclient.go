@@ -157,7 +157,7 @@ func (c *PersistentIMAPClient) Mailbox() *imap.MailboxStatus {
 }
 
 func (c *PersistentIMAPClient) Logout() error {
-	shutdown := c.isShutdown()
+	shutdown := !atomic.CompareAndSwapInt32(&c.shutdown, 0, 1)
 	c.log().WithField("shutdown", shutdown).Trace("pimap_logout_invoked")
 	if shutdown {
 		return nil

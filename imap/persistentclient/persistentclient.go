@@ -111,6 +111,9 @@ func (c *PersistentIMAPClient) UidStore(seqset *imap.SeqSet, item imap.StoreItem
 	shutdown := c.isShutdown()
 	c.log().WithField("shutdown", shutdown).Trace("pimap_uidstore_invoked")
 	if shutdown {
+		if ch != nil {
+			close(ch)
+		}
 		return errConnectionClosed
 	}
 

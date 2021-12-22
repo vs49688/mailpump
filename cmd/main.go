@@ -55,7 +55,22 @@ func runPump(cfg *CliConfig) error {
 		log.SetFormatter(&log.JSONFormatter{})
 	}
 
-	log.WithField("arguments", cfg).Info("starting")
+	log.WithFields(log.Fields{
+		"source_url":             cfg.SourceURL,
+		"source_username":        cfg.SourceUsername,
+		"source_tls_skip_verify": cfg.SourceTLSSkipVerify,
+		"source_transport":       cfg.SourceTransport,
+		"source_debug":           cfg.SourceDebug,
+		"dest_url":               cfg.DestURL,
+		"dest_username":          cfg.DestUsername,
+		"dest_tls_skip_verify":   cfg.DestTLSSkipVerify,
+		"dest_transport":         cfg.DestTransport,
+		"dest_debug":             cfg.DestDebug,
+		"log_level":              cfg.LogLevel,
+		"log_format":             cfg.LogFormat,
+		"tick_interval":          cfg.TickInterval,
+		"batch_size":             cfg.BatchSize,
+	}).Info("starting")
 
 	pumpConfig := pump.Config{}
 	if err := cfg.BuildPumpConfig(&pumpConfig); err != nil {

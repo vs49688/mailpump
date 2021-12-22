@@ -186,8 +186,13 @@ func (c *PersistentIMAPClient) FlagQuit() {
 }
 
 func (c *PersistentIMAPClient) log() *log.Entry {
-	return log.WithField("url", c.logURL)
+	e := log.WithField("url", c.logURL)
+	if log.IsLevelEnabled(log.TraceLevel) {
+		e = e.WithField("now", time.Now().UnixNano())
+	}
+	return e
 }
+
 
 func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
 	f := &client.Factory{}

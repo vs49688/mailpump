@@ -18,6 +18,9 @@
 
 package receiver
 
+// FlagCounter is a hybrid between a counter and a flag.
+// When FlagCounter.Counter goes above zero, an empty struct
+// is written to FlagCounter.Channel, if non-nil.
 type FlagCounter struct {
 	Counter uint
 	Channel chan<- struct{}
@@ -34,6 +37,15 @@ func (c *FlagCounter) Flag() {
 func (c *FlagCounter) FlagIf(b bool) {
 	if b {
 		c.Flag()
+	}
+}
+
+func (c *FlagCounter) FlagMany(count uint) {
+	old := c.Counter
+	c.Counter += count
+
+	if old == 0 && count != 0 && c.Channel != nil {
+		c.Channel <- struct{}{}
 	}
 }
 

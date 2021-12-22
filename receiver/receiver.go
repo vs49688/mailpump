@@ -113,7 +113,9 @@ func logMessageState(mstate *messageState) {
 	withMessageState(mstate).Trace("message_update")
 }
 
-func (mr *MailReceiver) handleFetch(r *fetchResult) {
+func (mr *MailReceiver) handleFetch(r *fetchResult) uint {
+	var num uint = 0
+	log.WithField("uids", r.UIDs).Trace("receiver_got_fetch_result")
 	for uid, msg := range r.Messages {
 		if _, ok := mr.messages[uid]; !ok {
 			mstate := &messageState{
@@ -125,8 +127,11 @@ func (mr *MailReceiver) handleFetch(r *fetchResult) {
 			mr.messages[uid] = mstate
 			logMessageState(mstate)
 			mr.outChannel <- mstate.Message
+			num += 1
 		}
 	}
+
+	return num
 }
 
 func (mr *MailReceiver) handleDelete(r *deleteResult) *messageState {
@@ -152,6 +157,12 @@ func (mr *MailReceiver) handleDelete(r *deleteResult) *messageState {
 
 func (mr *MailReceiver) handleAck(r *ackRequest) *messageState {
 	if r.Error != nil {
+		log.WithError(r.Error).WithField("uid", r.UID).Trace("receiver_got_ack")
+	} else {
+		log.WithField("uid", r.UID).Trace("receiver_got_ack")
+	}
+
+	if r.Error != nil {
 		return nil
 	}
 
@@ -166,212 +177,251 @@ func (mr *MailReceiver) handleAck(r *ackRequest) *messageState {
 	return nil
 }
 
-type sstate int
+func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
+	switch vv := upd.(type) {
+	case *client2.StatusUpdate:
+		log.WithFields(log.Fields{
+			"tag":       vv.Status.Tag,
+			"type":      vv.Status.Type,
+			"code":      vv.Status.Code,
+			"arguments": vv.Status.Arguments,
+			"info":      vv.Status.Info,
+		}).Trace("received_status_update")
+	case *client2.ExpungeUpdate:
+		log.WithField("seq", vv.SeqNum).Trace("received_expunge_update")
+	case *client2.MailboxUpdate:
+		log.Trace("received_mailbox_update")
+		return true
+	}
 
-var (
-	StateNone     sstate = 0
-	StateInIDLE   sstate = 1
-	StateInFetch  sstate = 2
-	StateInDelete sstate = 3
+	return false
+}
+
+type operation int
+
+const (
+	OperationNone         operation = 0
+	OperationIDLEFinish   operation = 1
+	OperationFetchFinish  operation = 2
+	OperationDeleteFinish operation = 3
 )
 
-func (s sstate) String() string {
-	switch s {
-	case StateNone:
+func (op operation) String() string {
+	switch op {
+	case OperationNone:
 		return "none"
-	case StateInIDLE:
-		return "in_idle"
-	case StateInFetch:
-		return "in_fetch"
-	case StateInDelete:
-		return "in_delete"
+	case OperationIDLEFinish:
+		return "idle_finish"
+	case OperationFetchFinish:
+		return "fetch_finish"
+	case OperationDeleteFinish:
+		return "delete_finish"
 	default:
-		panic("invalid_state")
+		panic("invalid state")
 	}
 }
 
 func (mr *MailReceiver) run() {
-	nextToProcess := map[uint32]*messageState{}
-	timeout := false
-
 	state := StateNone
-	// For when we're done fetching or deleting"
-	opChan := make(chan interface{}, 1)
+	nextToProcess := map[uint32]*messageState{}
+	wantQuit := FlagCounter{}
 
-	fetchFlag := FlagCounter{}
+	stopIdleChannel := make(chan struct{})
+	wantStopIdle := FlagCounter{Channel: stopIdleChannel}
+	opChan := make(chan operation, 1)
 
-	stopIdleChannel := make(chan struct{}, 1) // NB: needs buffer of 1, as we write to it to trigger ourselves
-	stopIdleFlag := FlagCounter{
-		Counter: 0,
-		Channel: stopIdleChannel,
+	wantFetch := FlagCounter{}  // Do we need to fetch again
+	wantDelete := FlagCounter{} // Do we need to delete
+
+	setState := func(s sstate) {
+		log.WithFields(log.Fields{
+			"old": state,
+			"new": s,
+		}).Trace("receiver_state_change")
+		state = s
 	}
-
-	quitFlag := FlagCounter{}
-
-	canProcess := func() bool {
-		r := fetchFlag.IsFlagged() || ((timeout || quitFlag.IsFlagged()) && len(nextToProcess) > 0) || uint(len(nextToProcess)) >= mr.batchSize
-		//log.WithFields(log.Fields{
-		//	"fetch_flag":     fetchFlag.IsFlagged(),
-		//	"quit_flag":      quitFlag.IsFlagged(),
-		//	"timeout":        timeout,
-		//	"num_to_process": len(nextToProcess),
-		//	"result":         r,
-		//}).Trace("can_process")
-		return r
-	}
-
-	addToProcess := func(msg *messageState) {
-		nextToProcess[msg.UID] = msg
-		if canProcess() {
-			stopIdleFlag.Flag()
-		}
-	}
-
-	// Wake up the first iteration
-	opChan <- nil
 
 	for {
-		log.WithField("state", state).Trace("receiver_loop_start")
+		log.WithFields(log.Fields{
+			"state":          state,
+			"want_quit":      wantQuit.IsFlagged(),
+			"want_fetch":     wantFetch.IsFlagged(),
+			"want_delete":    wantDelete.IsFlagged(),
+			"want_stop_idle": wantStopIdle.IsFlagged(),
+		}).Trace("receiver_loop_start")
+
+		op := OperationNone
+
 		select {
 		case <-mr.wantQuit:
-			log.Trace("receiver_xx_want_quit")
-			quitFlag.Flag()
-			switch state {
-			case StateNone:
-				break
-			case StateInIDLE:
-				stopIdleFlag.Flag()
-				continue
-			case StateInDelete:
-				continue
-			case StateInFetch:
-				continue
-			}
-		case v := <-opChan:
-			log.Trace("receiver_xx_opchan")
-			if state == StateNone {
-				// nop, self-wakeup
-			} else if state == StateInDelete {
-				// nop, delete finished
-			} else if state == StateInFetch {
-				// fetch finished
-				more, _ := v.(bool)
-				fetchFlag.FlagIf(more && !quitFlag.IsFlagged())
-				state = StateNone
-			} else if state == StateInIDLE {
-				// idle finished
-				stopIdleFlag.Reset()
-			}
-
-			state = StateNone
+			wantQuit.Flag()
+			mr.client.FlagQuit()
 		case upd := <-mr.updates:
-			log.Trace("receiver_xx_update")
-			switch vv := upd.(type) {
-			case *client2.StatusUpdate:
-				log.WithFields(log.Fields{
-					"tag":       vv.Status.Tag,
-					"type":      vv.Status.Type,
-					"code":      vv.Status.Code,
-					"arguments": vv.Status.Arguments,
-					"info":      vv.Status.Info,
-				}).Trace("received_status_update")
-			case *client2.ExpungeUpdate:
-				log.WithFields(log.Fields{"seq": vv.SeqNum}).Trace("received_expunge_update")
-			case *client2.MailboxUpdate:
-				log.Trace("received_mailbox_update")
-				fetchFlag.FlagIf(!quitFlag.IsFlagged())
-				stopIdleFlag.Flag()
+			if mr.handleMessageUpdate(upd) {
+				wantFetch.Flag()
 			}
-			continue
-		case <-time.After(5 * time.Second):
-			log.Trace("receiver_xx_timeout")
-			timeout = true
-			if state == StateInIDLE {
-				fetchFlag.Flag()
-				stopIdleFlag.Flag()
-				continue
-			} else if state == StateInDelete {
-				continue
-			} else if state == StateInFetch {
-				continue
-			}
-			//if canProcess() {
-			//	stopIdleFlag.Flag()
-			//}
 		case _r := <-mr.imapChannel:
-			log.Trace("receiver_xx_imapchan")
-			// Message updates should be run in any state
 			switch r := _r.(type) {
 			case fetchResult:
+				if state != StateInFetch {
+					log.WithField("state", state).Panicf("receiver_fetch_outside_fetch")
+				}
+
 				// If we're quitting, just discard all new fetches
-				if quitFlag.IsFlagged() {
+				if wantQuit.IsFlagged() {
+					log.WithField("uids", r.UIDs).Trace("receiver_ignoring_fetch_quitting")
 					break
 				}
 
 				// Only sends messages out
-				mr.handleFetch(&r)
-			case deleteResult:
-				if msg := mr.handleDelete(&r); msg != nil {
-					addToProcess(msg)
+				if num := mr.handleFetch(&r); num > 0 {
+					wantFetch.FlagMany(num)
 				}
+			case deleteResult:
+				if state != StateInDelete {
+					log.WithField("state", state).Panicf("receiver_delete_outside_delete")
+				}
+
+				if msg := mr.handleDelete(&r); msg != nil {
+					// Flag if delete failed
+					nextToProcess[msg.UID] = msg
+					wantDelete.Flag()
+				}
+			default:
+				log.WithField("result", r).Panicf("receiver_invalid_result")
 			}
-			continue
 		case ack := <-mr.ackChannel:
-			log.Trace("receiver_xx_ackchan")
 			// ACKs should be handled in any state
 			if msg := mr.handleAck(&ack); msg != nil {
-				addToProcess(msg)
+				nextToProcess[msg.UID] = msg
+				wantDelete.Flag()
 			}
-			continue
-		}
-
-		// We can't really do anything if we're IDLE'ing.
-		if state == StateInIDLE {
-			continue
-		}
-
-		if state != StateNone {
-			log.WithField("state", state).Panicf("invalid_state")
-		}
-
-		wantProc := canProcess()
-		if wantProc {
-			if fetchFlag.IsFlagged() && !quitFlag.IsFlagged() {
-				state = StateInFetch
-				fetchFlag.Reset()
-				go func() { opChan <- doFetch(mr.client, mr.imapChannel) }()
-			} else {
-				state = StateInDelete
-				go func(toProcess map[uint32]*messageState) { opChan <- doDelete(mr.client, mr.imapChannel, toProcess) }(nextToProcess)
-				nextToProcess = map[uint32]*messageState{}
-			}
-			continue
-		}
-
-		if quitFlag.IsFlagged() {
-			if len(nextToProcess) > 0 || len(mr.messages) > 0 {
-				opChan <- struct{}{}
-				continue
-			}
-
+		case op = <-opChan:
 			break
 		}
 
-		state = StateInIDLE
-		go func() {
-			opChan <- mr.client.Idle(stopIdleChannel, &client2.IdleOptions{
-				LogoutTimeout: 250 * time.Second, // Yahoo kills us after 5 mintues
-				PollInterval:  mr.tickInterval,
-			})
-		}()
+		log.WithFields(log.Fields{
+			"state":     state,
+			"operation": op,
+		}).Trace("receiver_tick")
+
+		switch state {
+		case StateNone:
+			if op != OperationNone {
+				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
+			}
+
+			log.WithFields(log.Fields{
+				"state":            state,
+				"operation":        op,
+				"want_quit":        wantQuit.IsFlagged(),
+				"fetch_flag":       wantFetch.IsFlagged(),
+				"delete_flag":      wantDelete.IsFlagged(),
+				"to_process_count": len(nextToProcess),
+
+			}).Trace("receiver_processing_state_none")
+
+			/*
+				if wantDelete.IsFlagged() && !wantFetch.IsFlagged() && len(nextToProcess) == 1 && !wantQuit.IsFlagged() {
+					panic("BUGBUGBUG1")
+				}
+
+				if !wantDelete.IsFlagged() && wantFetch.IsFlagged() && len(nextToProcess) == 1 && !wantQuit.IsFlagged() {
+					panic("BUGBUGBUG2")
+				}
+			*/
+
+			if wantQuit.IsFlagged() {
+				// paranoia
+				wantFetch.Reset()
+			}
+
+			if len(nextToProcess) > 0 || wantDelete.IsFlagged() {
+				wantDelete.Reset()
+				if wantQuit.IsFlagged() || uint(len(nextToProcess)) >= mr.batchSize {
+					setState(StateInDelete)
+					go func(toProcess map[uint32]*messageState) {
+						_ = doDelete(mr.client, mr.imapChannel, toProcess)
+						opChan <- OperationDeleteFinish
+					}(nextToProcess)
+					nextToProcess = map[uint32]*messageState{}
+					continue
+				}
+			}
+
+			if wantFetch.IsFlagged() {
+				wantFetch.Reset()
+				setState(StateInFetch)
+				go func() {
+					_ = doFetch(mr.client, mr.imapChannel)
+					opChan <- OperationFetchFinish
+				}()
+			} else if !wantQuit.IsFlagged() {
+				setState(StateInIDLE)
+				go func() {
+					err := mr.client.Idle(stopIdleChannel, &client2.IdleOptions{
+						LogoutTimeout: 250 * time.Second, // Yahoo kills us after 5 mintues
+						PollInterval:  mr.tickInterval,
+					})
+					if err != nil {
+						log.WithError(err).Trace("receiver_idle_failed")
+					}
+					opChan <- OperationIDLEFinish
+				}()
+			} else {
+				goto done
+			}
+
+		case StateInIDLE:
+			switch op {
+			case OperationNone:
+				if wantQuit.IsFlagged() || wantFetch.IsFlagged() || wantDelete.IsFlagged() {
+					wantStopIdle.Flag()
+				}
+			case OperationIDLEFinish:
+				wantStopIdle.Reset()
+				setState(StateNone)
+				opChan <- OperationNone
+			default:
+				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
+			}
+		case StateInFetch:
+			switch op {
+			case OperationNone:
+				break
+			case OperationFetchFinish:
+				// actFlag may be set
+				setState(StateNone)
+				opChan <- OperationNone
+			default:
+				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
+			}
+		case StateInDelete:
+			switch op {
+			case OperationNone:
+				break
+			case OperationDeleteFinish:
+				setState(StateNone)
+				opChan <- OperationNone
+			default:
+				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
+			}
+		}
 	}
+
+done:
+	log.WithField("state", state).Trace("receiver_loop_exit")
 
 	mr.hasQuit <- struct{}{}
 	log.Trace("receiver_proc_quit")
 }
 
 func (mr *MailReceiver) Close() {
+	log.Trace("receiver_close_invoked")
 	mr.wantQuit <- struct{}{}
+	log.Trace("receiver_close_waiting_for_quit")
 	<-mr.hasQuit
+	log.Trace("receiver_close_have_quit")
 	_ = mr.client.Logout()
+	log.Trace("receiver_close_logout")
 }

@@ -71,6 +71,30 @@ type deleteResult struct {
 	State state
 }
 
+type sstate int
+
+var (
+	StateNone     sstate = 0
+	StateInIDLE   sstate = 1
+	StateInFetch  sstate = 2
+	StateInDelete sstate = 3
+)
+
+func (s sstate) String() string {
+	switch s {
+	case StateNone:
+		return "none"
+	case StateInIDLE:
+		return "in_idle"
+	case StateInFetch:
+		return "in_fetch"
+	case StateInDelete:
+		return "in_delete"
+	default:
+		panic("invalid_state")
+	}
+}
+
 type MailReceiver struct {
 	client imap2.Client
 

@@ -25,19 +25,6 @@ import (
 	"time"
 )
 
-func (s state) String() string {
-	switch s {
-	case StateUnacked:
-		return "StateUnacked"
-	case StateAcked:
-		return "StateAcked"
-	case StateDeleted:
-		return "StateDeleted"
-	default:
-		panic("invalid state")
-	}
-}
-
 func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error) {
 	updateChannel := make(chan client2.Update, 10)
 	c, err := factory.NewClient(&imap2.ClientConfig{
@@ -195,33 +182,6 @@ func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
 	}
 
 	return false
-}
-
-type operation int
-
-const (
-	OperationNone         operation = 0
-	OperationIDLEFinish   operation = 1
-	OperationFetchFinish  operation = 2
-	OperationDeleteFinish operation = 3
-	OperationTimeout      operation = 4
-)
-
-func (op operation) String() string {
-	switch op {
-	case OperationNone:
-		return "none"
-	case OperationIDLEFinish:
-		return "idle_finish"
-	case OperationFetchFinish:
-		return "fetch_finish"
-	case OperationDeleteFinish:
-		return "delete_finish"
-	case OperationTimeout:
-		return "timeout"
-	default:
-		panic("invalid state")
-	}
 }
 
 func (mr *MailReceiver) run() {

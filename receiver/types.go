@@ -54,6 +54,46 @@ const (
 	StateDeleted state = 2
 )
 
+func (s state) String() string {
+	switch s {
+	case StateUnacked:
+		return "StateUnacked"
+	case StateAcked:
+		return "StateAcked"
+	case StateDeleted:
+		return "StateDeleted"
+	default:
+		panic("invalid state")
+	}
+}
+
+type operation int
+
+const (
+	OperationNone         operation = 0
+	OperationIDLEFinish   operation = 1
+	OperationFetchFinish  operation = 2
+	OperationDeleteFinish operation = 3
+	OperationTimeout      operation = 4
+)
+
+func (op operation) String() string {
+	switch op {
+	case OperationNone:
+		return "none"
+	case OperationIDLEFinish:
+		return "idle_finish"
+	case OperationFetchFinish:
+		return "fetch_finish"
+	case OperationDeleteFinish:
+		return "delete_finish"
+	case OperationTimeout:
+		return "timeout"
+	default:
+		panic("invalid state")
+	}
+}
+
 type messageState struct {
 	UID     uint32
 	SeqNum  uint32

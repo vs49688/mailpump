@@ -129,7 +129,7 @@ func TestReceiver(t *testing.T) {
 		TLS:          false,
 		TLSConfig:    nil,
 		Channel:      ch,
-		Debug:        true,
+		Debug:        false,
 		TickInterval: 1 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
@@ -150,4 +150,50 @@ func TestReceiver(t *testing.T) {
 
 	msg = <-ch
 	receiver.Ack(msg.Uid, nil)
+}
+
+func TestLogoutWhenDisconnected(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+	ch := make(chan *imap.Message, 1)
+	receiver, err := NewReceiver(&Config{
+		HostPort:     "0.0.0.0:993",
+		Username:     "username",
+		Password:     "password",
+		Mailbox:      "INBOX",
+		TLS:          false,
+		TLSConfig:    nil,
+		Channel:      ch,
+		Debug:        true,
+		TickInterval: 1 * time.Second,
+	}, &persistentclient.Factory{
+		Mailbox: "INBOX",
+	})
+	assert.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	receiver.Close()
+}
+
+// TestImmediateLogout tests the case where Logout()
+// is called immediately after creation. This can sometimes
+// cause a race.
+func TestImmediateLogout(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+
+	imapServer, addr := BuildTestIMAPServer(t)
+	defer imapServer.Close()
+
+	ch := make(chan *imap.Message, 1)
+	receiver, err := NewReceiver(&Config{
+		HostPort:     addr,
+		Username:     "username",
+		Password:     "password",
+		Mailbox:      "INBOX",
+		TLS:          false,
+		TLSConfig:    nil,
+		Channel:      ch,
+		Debug:        true,
+		TickInterval: 1 * time.Second,
+	}, &client.Factory{})
+	assert.NoError(t, err)
+	defer receiver.Close()
 }

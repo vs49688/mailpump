@@ -30,7 +30,7 @@ func TestIdleCancellation(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = <-ch
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestIdleAfterLogout(t *testing.T) {

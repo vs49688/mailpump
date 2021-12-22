@@ -44,7 +44,7 @@ func (c *PersistentIMAPClient) Idle(stop <-chan struct{}, opts *goImapClient.Idl
 	}
 
 	r := make(chan error)
-	c.ch <- idleRequest{
+	c.idleChannel <- idleRequest{
 		r:    r,
 		stop: stop,
 		opts: opts,
@@ -154,6 +154,7 @@ func (c *PersistentIMAPClient) Mailbox() *imap.MailboxStatus {
 		return &imap.MailboxStatus{Name: c.cfg.Mailbox}
 	}
 
+
 	r := make(chan *imap.MailboxStatus)
 	c.ch <- mailboxRequest{r: r}
 	return <-r
@@ -220,14 +221,42 @@ func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
 
 func (c *PersistentIMAPClient) run() {
 	var nextDelay time.Duration = 0
+	var logout logoutRequest
 	state := ClientStateDisconnected
 	for {
-		c.log().WithField("state", state).Trace("pimap_loop_enter")
+		c.log().WithFields(log.Fields{
+			"state":     state,
+			"fake_idle": c.idle != nil,
+		}).Trace("pimap_loop_enter")
 		if state == ClientStateDisconnected {
 			select {
+			case <-c.stopIdle:
+				if c.idle == nil {
+					panic("not in idle")
+				}
+
+				// Stop IDLE during disconnect
+				c.log().Trace("pimap_fake_idle_stop")
+				c.idle.r <- nil
+				c.idle = nil
+				c.stopIdle = nil
+			case r := <-c.idleChannel:
+				// We're disconnected, special IDLE handling
+				if c.idle != nil {
+					panic("already in idle")
+				}
+				c.log().Trace("pimap_fake_idle_start")
+				c.idle = &r
+				c.stopIdle = r.stop
 			case req := <-c.logoutChannel:
-				c.log().Trace("pimap_logout_request")
-				req.r <- nil
+				c.log().WithField("fake_idle", c.idle != nil).Trace("pimap_logout_request")
+				logout = req
+				if c.idle != nil {
+					c.log().Trace("pimap_fake_idle_stop")
+					c.idle.r <- nil
+					c.idle = nil
+					c.stopIdle = nil
+				}
 				goto done
 			case <-time.After(nextDelay):
 				break
@@ -259,6 +288,19 @@ func (c *PersistentIMAPClient) run() {
 
 		if state == ClientStateConnected {
 			c.log().WithField("state", state).Trace("pimap_entering_connected_select")
+
+			// Upgrade to a "real" IDLE
+			if c.idle != nil {
+				c.log().Trace("pimap_fake_idle_upgrade")
+				stop := c.stopIdle
+				c.stopIdle = nil
+				c.log().Trace("pimap_fake_idle_upgrade_enter")
+				c.idle.r <- c.c.Idle(stop, c.idle.opts)
+				c.log().Trace("pimap_fake_idle_upgrade_exit")
+				c.idle = nil
+				continue
+			}
+
 			select {
 			case <-c.c.LoggedOut():
 				c.log().Trace("pimap_disconnected")
@@ -266,14 +308,15 @@ func (c *PersistentIMAPClient) run() {
 				state = ClientStateDisconnected
 			case req := <-c.logoutChannel:
 				c.log().Trace("pimap_logout_request")
-				req.r <- c.c.Logout()
+				logout = req
 				goto done
+			case req := <-c.idleChannel:
+				// We're connected, no special IDLE handling
+				c.log().Trace("pimap_idle_request_before")
+				req.r <- c.c.Idle(req.stop, req.opts)
+				c.log().Trace("pimap_idle_request_after")
 			case _req := <-c.ch:
 				switch req := _req.(type) {
-				case idleRequest:
-					c.log().Trace("pimap_idle_request")
-					req.r <- c.c.Idle(req.stop, req.opts)
-					c.log().Trace("pimap_idle_request_after")
 				case selectRequest:
 					c.log().Trace("pimap_select_request")
 					s, err := c.c.Select(req.name, req.readOnly)
@@ -298,9 +341,22 @@ func (c *PersistentIMAPClient) run() {
 		}
 	}
 done:
-	c.c = nil
 	atomic.StoreInt32(&c.shutdown, 1)
+	// NB: At this point, we've shut down any new requests, but
+	// there may be ones queued up.
+
+	logout.r <- nil
+	if c.c != nil {
+		err := c.c.Logout()
+		if err != nil {
+			log.WithError(err).Info("logout_failed")
+		}
+		c.c = nil
+	}
 	c.drainRequests()
+	close(c.ch)
+	close(c.idleChannel)
+	close(c.logoutChannel)
 	close(c.loggedOut)
 	c.log().Trace("pimap_proc_exit")
 }
@@ -312,6 +368,12 @@ func (c *PersistentIMAPClient) drainRequests() {
 		case req := <-c.logoutChannel:
 			count += 1
 			req.r <- nil
+		case req, ok := <-c.idleChannel:
+			if !ok {
+				continue
+			}
+			count += 1
+			req.r <- errConnectionClosed
 		case _req := <-c.ch:
 			count += 1
 			switch req := _req.(type) {
@@ -333,8 +395,6 @@ func (c *PersistentIMAPClient) drainRequests() {
 		}
 	}
 done:
-	close(c.ch)
-	//c.log().WithField("count", count).Trace("pimap_drained_requests")
 }
 
 func NewClient(cfg *Config) (*PersistentIMAPClient, error) {
@@ -363,6 +423,9 @@ func NewClient(cfg *Config) (*PersistentIMAPClient, error) {
 		shutdown:      0,
 		loggedOut:     make(chan struct{}),
 		logURL:        u.String(),
+		idle:          nil,
+		idleChannel:   make(chan idleRequest),
+		stopIdle:      nil,
 	}
 	go c.run()
 	return c, nil

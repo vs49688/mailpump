@@ -317,6 +317,7 @@ func (mr *MailReceiver) run() {
 				break
 			case OperationTimeout:
 				wantFetch.Flag()
+				wantDelete.Flag()
 			default:
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
 			}
@@ -345,9 +346,14 @@ func (mr *MailReceiver) run() {
 				wantFetch.Reset()
 			}
 
-			if len(nextToProcess) > 0 || wantDelete.IsFlagged() {
+			if uint(len(nextToProcess)) >= mr.batchSize {
+				wantDelete.Flag()
+			}
+
+			if wantDelete.IsFlagged() {
 				wantDelete.Reset()
-				if wantQuit.IsFlagged() || uint(len(nextToProcess)) >= mr.batchSize {
+
+				if len(nextToProcess) > 0 {
 					setState(StateInDelete)
 					go func(toProcess map[uint32]*messageState) {
 						_ = doDelete(mr.client, mr.imapChannel, toProcess)
@@ -386,7 +392,7 @@ func (mr *MailReceiver) run() {
 			case OperationNone:
 				fallthrough
 			case OperationTimeout:
-				if wantQuit.IsFlagged() || wantFetch.IsFlagged() || wantDelete.IsFlagged() {
+				if wantQuit.IsFlagged() || wantFetch.IsFlagged() || wantDelete.IsFlagged() || len(nextToProcess) > 0 {
 					wantStopIdle.Flag()
 				}
 			case OperationIDLEFinish:

@@ -41,10 +41,9 @@ func doFetch(client imap2.Client, result chan<- interface{}) bool {
 		"unseen_seq":   mbStatus.UnseenSeqNum,
 	}).Trace("receiver_mailbox_status")
 
-	// NB: Can't rely on this
-	//if mbStatus.Messages == 0 {
-	//	return false
-	//}
+	if mbStatus.Messages == 0 {
+		return false
+	}
 
 	ch := make(chan *imap.Message)
 	done := make(chan error)

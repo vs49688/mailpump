@@ -21,7 +21,6 @@ package pump
 import (
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
-	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/ingest"
 	"github.com/vs49688/mailpump/receiver"
 )
@@ -40,10 +39,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 		TickInterval: cfg.TickInterval,
 		BatchSize:    cfg.BatchSize,
 		Channel:      ch,
-	}, &persistentclient.Factory{
-		Mailbox:  cfg.SourceMailbox,
-		MaxDelay: 0,
-	})
+	}, cfg.SourceFactory)
 
 	if err != nil {
 		return nil, err
@@ -57,10 +53,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 		TLS:       cfg.DestTLS,
 		TLSConfig: cfg.DestTLSConfig,
 		Debug:     cfg.DestDebug,
-	}, &persistentclient.Factory{
-		Mailbox:  cfg.DestMailbox,
-		MaxDelay: 0,
-	})
+	}, cfg.DestFactory)
 	if err != nil {
 		recv.Close()
 		return nil, err

@@ -20,7 +20,7 @@ package pump
 
 import (
 	"crypto/tls"
-	"github.com/emersion/go-imap"
+	"github.com/vs49688/mailpump/imap"
 	"github.com/vs49688/mailpump/ingest"
 	"github.com/vs49688/mailpump/receiver"
 	"time"
@@ -33,6 +33,7 @@ type Config struct {
 	SourceMailbox   string
 	SourceTLS       bool
 	SourceTLSConfig *tls.Config
+	SourceFactory   imap.ClientFactory
 	SourceDebug     bool
 
 	DestHostPort  string
@@ -41,6 +42,8 @@ type Config struct {
 	DestMailbox   string
 	DestTLS       bool
 	DestTLSConfig *tls.Config
+	DestTransport string
+	DestFactory   imap.ClientFactory
 	DestDebug     bool
 
 	TickInterval time.Duration

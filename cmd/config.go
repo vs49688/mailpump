@@ -21,6 +21,8 @@ package cmd
 import (
 	"crypto/tls"
 	"errors"
+	"github.com/vs49688/mailpump/imap/client"
+	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/pump"
 	"net"
 	"time"
@@ -35,11 +37,13 @@ type CliConfig struct {
 	SourceUsername      string        `json:"source_username"`
 	SourcePassword      string        `json:"-"`
 	SourceTLSSkipVerify bool          `json:"source_tls_skip_verify"`
+	SourceTransport     string        `json:"source_transport"`
 	SourceDebug         bool          `json:"source_debug"`
 	DestURL             string        `json:"dest_url"`
 	DestUsername        string        `json:"dest_username"`
 	DestPassword        string        `json:"-"`
 	DestTLSSkipVerify   bool          `json:"dest_tls_skip_verify"`
+	DestTransport       string        `json:"dest_transport"`
 	DestDebug           bool          `json:"dest_debug"`
 	LogLevel            string        `json:"log_level"`
 	LogFormat           string        `json:"log_format"`
@@ -50,8 +54,10 @@ type CliConfig struct {
 func DefaultConfig() CliConfig {
 	return CliConfig{
 		SourceTLSSkipVerify: false,
+		SourceTransport:     "persistent",
 		SourceDebug:         false,
 		DestTLSSkipVerify:   false,
+		DestTransport:       "persistent",
 		DestDebug:           false,
 		LogLevel:            "info",
 		LogFormat:           "text",
@@ -95,6 +101,13 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Destination: &cfg.SourceTLSSkipVerify,
 			Value:       def.SourceTLSSkipVerify,
 		},
+		&cli.StringFlag{
+			Name:        "source-transport",
+			Usage:       "source imap transport (persistent, standard)",
+			EnvVars:     []string{"MAILPUMP_SOURCE_TRANSPORT"},
+			Destination: &cfg.SourceTransport,
+			Value:       def.SourceTransport,
+		},
 		&cli.BoolFlag{
 			Name:        "source-debug",
 			Usage:       "display source debug info",
@@ -132,6 +145,13 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			EnvVars:     []string{"MAILPUMP_DEST_TLS_SKIP_VERIFY"},
 			Destination: &cfg.DestTLSSkipVerify,
 			Value:       def.DestTLSSkipVerify,
+		},
+		&cli.StringFlag{
+			Name:        "dest-transport",
+			Usage:       "destination imap transport (persistent, standard)",
+			EnvVars:     []string{"MAILPUMP_DEST_TRANSPORT"},
+			Destination: &cfg.DestTransport,
+			Value:       def.DestTransport,
 		},
 		&cli.BoolFlag{
 			Name:        "dest-debug",
@@ -221,6 +241,16 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	if cfg.SourceTLSSkipVerify {
 		pumpConfig.SourceTLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
+
+	if cfg.SourceTransport != "persistent" {
+		pumpConfig.SourceFactory = &client.Factory{}
+	} else {
+		pumpConfig.SourceFactory = &persistentclient.Factory{
+			Mailbox:  sourceMailbox,
+			MaxDelay: 0,
+		}
+	}
+
 	pumpConfig.SourceDebug = cfg.SourceDebug
 
 	destURL, err := url.Parse(cfg.DestURL)
@@ -242,6 +272,16 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	if cfg.SourceTLSSkipVerify {
 		pumpConfig.DestTLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
+
+	if cfg.DestTransport != "persistent" {
+		pumpConfig.DestFactory = &client.Factory{}
+	} else {
+		pumpConfig.DestFactory = &persistentclient.Factory{
+			Mailbox:  destMailbox,
+			MaxDelay: 0,
+		}
+	}
+
 	pumpConfig.DestDebug = cfg.DestDebug
 
 	if cfg.TickInterval == 0 {

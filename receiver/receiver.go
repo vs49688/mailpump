@@ -204,6 +204,7 @@ const (
 	OperationIDLEFinish   operation = 1
 	OperationFetchFinish  operation = 2
 	OperationDeleteFinish operation = 3
+	OperationTimeout      operation = 4
 )
 
 func (op operation) String() string {
@@ -216,6 +217,8 @@ func (op operation) String() string {
 		return "fetch_finish"
 	case OperationDeleteFinish:
 		return "delete_finish"
+	case OperationTimeout:
+		return "timeout"
 	default:
 		panic("invalid state")
 	}
@@ -296,6 +299,8 @@ func (mr *MailReceiver) run() {
 				nextToProcess[msg.UID] = msg
 				wantDelete.Flag()
 			}
+		case <-time.After(5 * time.Second):
+			op = OperationTimeout
 		case op = <-opChan:
 			break
 		}
@@ -307,7 +312,12 @@ func (mr *MailReceiver) run() {
 
 		switch state {
 		case StateNone:
-			if op != OperationNone {
+			switch op {
+			case OperationNone:
+				break
+			case OperationTimeout:
+				wantFetch.Flag()
+			default:
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
 			}
 
@@ -318,7 +328,6 @@ func (mr *MailReceiver) run() {
 				"fetch_flag":       wantFetch.IsFlagged(),
 				"delete_flag":      wantDelete.IsFlagged(),
 				"to_process_count": len(nextToProcess),
-
 			}).Trace("receiver_processing_state_none")
 
 			/*
@@ -375,6 +384,8 @@ func (mr *MailReceiver) run() {
 		case StateInIDLE:
 			switch op {
 			case OperationNone:
+				fallthrough
+			case OperationTimeout:
 				if wantQuit.IsFlagged() || wantFetch.IsFlagged() || wantDelete.IsFlagged() {
 					wantStopIdle.Flag()
 				}
@@ -393,6 +404,8 @@ func (mr *MailReceiver) run() {
 				// actFlag may be set
 				setState(StateNone)
 				opChan <- OperationNone
+			case OperationTimeout:
+				break
 			default:
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
 			}
@@ -403,6 +416,8 @@ func (mr *MailReceiver) run() {
 			case OperationDeleteFinish:
 				setState(StateNone)
 				opChan <- OperationNone
+			case OperationTimeout:
+				break
 			default:
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panicf("invalid_operation_for_state")
 			}

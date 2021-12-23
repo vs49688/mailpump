@@ -24,6 +24,7 @@ import (
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/pump"
+	"io/ioutil"
 	"net"
 	"time"
 
@@ -36,12 +37,14 @@ type CliConfig struct {
 	SourceURL           string        `json:"source_url"`
 	SourceUsername      string        `json:"source_username"`
 	SourcePassword      string        `json:"-"`
+	SourcePasswordFile  string        `json:"source_password_file"`
 	SourceTLSSkipVerify bool          `json:"source_tls_skip_verify"`
 	SourceTransport     string        `json:"source_transport"`
 	SourceDebug         bool          `json:"source_debug"`
 	DestURL             string        `json:"dest_url"`
 	DestUsername        string        `json:"dest_username"`
 	DestPassword        string        `json:"-"`
+	DestPasswordFile    string        `json:"dest_password_file"`
 	DestTLSSkipVerify   bool          `json:"dest_tls_skip_verify"`
 	DestTransport       string        `json:"dest_transport"`
 	DestDebug           bool          `json:"dest_debug"`
@@ -91,8 +94,16 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Usage:       "source imap password",
 			EnvVars:     []string{"MAILPUMP_SOURCE_PASSWORD"},
 			Destination: &cfg.SourcePassword,
-			Required:    true,
+			Required:    false,
 			Value:       def.SourcePassword,
+		},
+		&cli.StringFlag{
+			Name:        "source-password-file",
+			Usage:       "source imap password file",
+			EnvVars:     []string{"MAILPUMP_SOURCE_PASSWORD_FILE"},
+			Destination: &cfg.SourcePasswordFile,
+			Required:    false,
+			Value:       def.SourcePasswordFile,
 		},
 		&cli.BoolFlag{
 			Name:        "source-tls-skip-verify",
@@ -136,8 +147,16 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Usage:       "destination imap password",
 			EnvVars:     []string{"MAILPUMP_DEST_PASSWORD"},
 			Destination: &cfg.DestPassword,
-			Required:    true,
+			Required:    false,
 			Value:       def.DestPassword,
+		},
+		&cli.StringFlag{
+			Name:        "dest-password-file",
+			Usage:       "destination imap password file",
+			EnvVars:     []string{"MAILPUMP_DEST_PASSWORD_FILE"},
+			Destination: &cfg.DestPasswordFile,
+			Required:    false,
+			Value:       def.DestPasswordFile,
 		},
 		&cli.BoolFlag{
 			Name:        "dest-tls-skip-verify",
@@ -234,7 +253,20 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 
 	pumpConfig.SourceHostPort = sourceHostPort
 	pumpConfig.SourceUsername = cfg.SourceUsername
-	pumpConfig.SourcePassword = cfg.SourcePassword
+
+	if cfg.SourcePassword != "" {
+		pumpConfig.SourcePassword = cfg.SourcePassword
+	} else if cfg.SourcePasswordFile != "" {
+		pass, err := ioutil.ReadFile(cfg.SourcePasswordFile)
+		if err != nil {
+			return err
+		}
+
+		pumpConfig.SourcePassword = strings.TrimSpace(string(pass))
+	} else {
+		return errors.New("at least one of the \"source-password\" or \"source-password-file\" flags is required")
+	}
+
 	pumpConfig.SourceMailbox = sourceMailbox
 	pumpConfig.SourceTLS = sourceTLS
 	pumpConfig.SourceTLSConfig = nil
@@ -265,7 +297,20 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 
 	pumpConfig.DestHostPort = destHostPort
 	pumpConfig.DestUsername = cfg.DestUsername
-	pumpConfig.DestPassword = cfg.DestPassword
+
+	if cfg.DestPassword != "" {
+		pumpConfig.DestPassword = cfg.DestPassword
+	} else if cfg.DestPasswordFile != "" {
+		pass, err := ioutil.ReadFile(cfg.DestPasswordFile)
+		if err != nil {
+			return err
+		}
+
+		pumpConfig.DestPassword = strings.TrimSpace(string(pass))
+	} else {
+		return errors.New("at least one of the \"dest-password\" or \"dest-password-file\" flags is required")
+	}
+
 	pumpConfig.DestMailbox = destMailbox
 	pumpConfig.DestTLS = destTLS
 	pumpConfig.DestTLSConfig = nil

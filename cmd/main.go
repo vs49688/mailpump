@@ -74,7 +74,6 @@ func runPump(cfg *CliConfig) error {
 
 	pumpConfig := pump.Config{}
 	if err := cfg.BuildPumpConfig(&pumpConfig); err != nil {
-		log.WithError(err).Error("invalid_arguments")
 		return err
 	}
 

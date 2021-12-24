@@ -34,44 +34,44 @@ import (
 )
 
 type CliConfig struct {
-	SourceURL           string        `json:"source_url"`
-	SourceUsername      string        `json:"source_username"`
-	SourcePassword      string        `json:"-"`
-	SourcePasswordFile  string        `json:"source_password_file"`
-	SourceTLSSkipVerify bool          `json:"source_tls_skip_verify"`
-	SourceTransport     string        `json:"source_transport"`
-	SourceDebug         bool          `json:"source_debug"`
-	DestURL             string        `json:"dest_url"`
-	DestUsername        string        `json:"dest_username"`
-	DestPassword        string        `json:"-"`
-	DestPasswordFile    string        `json:"dest_password_file"`
-	DestTLSSkipVerify   bool          `json:"dest_tls_skip_verify"`
-	DestTransport       string        `json:"dest_transport"`
-	DestDebug           bool          `json:"dest_debug"`
-	LogLevel            string        `json:"log_level"`
-	LogFormat           string        `json:"log_format"`
+	SourceURL            string        `json:"source_url"`
+	SourceUsername       string        `json:"source_username"`
+	SourcePassword       string        `json:"-"`
+	SourcePasswordFile   string        `json:"source_password_file"`
+	SourceTLSSkipVerify  bool          `json:"source_tls_skip_verify"`
+	SourceTransport      string        `json:"source_transport"`
+	SourceDebug          bool          `json:"source_debug"`
+	DestURL              string        `json:"dest_url"`
+	DestUsername         string        `json:"dest_username"`
+	DestPassword         string        `json:"-"`
+	DestPasswordFile     string        `json:"dest_password_file"`
+	DestTLSSkipVerify    bool          `json:"dest_tls_skip_verify"`
+	DestTransport        string        `json:"dest_transport"`
+	DestDebug            bool          `json:"dest_debug"`
+	LogLevel             string        `json:"log_level"`
+	LogFormat            string        `json:"log_format"`
 	IDLEFallbackInterval time.Duration `json:"idle_fallback_interval"`
-	BatchSize           uint          `json:"batch_size"`
-	DisableDeletions    bool          `json:"disable_deletions"`
-	FetchBufferSize     uint          `json:"fetch_buffer_size"`
-	FetchMaxInterval    time.Duration `json:"fetch_max_interval"`
+	BatchSize            uint          `json:"batch_size"`
+	DisableDeletions     bool          `json:"disable_deletions"`
+	FetchBufferSize      uint          `json:"fetch_buffer_size"`
+	FetchMaxInterval     time.Duration `json:"fetch_max_interval"`
 }
 
 func DefaultConfig() CliConfig {
 	return CliConfig{
-		SourceTLSSkipVerify: false,
-		SourceTransport:     "persistent",
-		SourceDebug:         false,
-		DestTLSSkipVerify:   false,
-		DestTransport:       "persistent",
-		DestDebug:           false,
-		LogLevel:            "info",
-		LogFormat:           "text",
+		SourceTLSSkipVerify:  false,
+		SourceTransport:      "persistent",
+		SourceDebug:          false,
+		DestTLSSkipVerify:    false,
+		DestTransport:        "persistent",
+		DestDebug:            false,
+		LogLevel:             "info",
+		LogFormat:            "text",
 		IDLEFallbackInterval: time.Minute,
-		BatchSize:           15,
-		DisableDeletions:    false,
-		FetchBufferSize:     20,
-		FetchMaxInterval:    5 * time.Minute,
+		BatchSize:            15,
+		DisableDeletions:     false,
+		FetchBufferSize:      20,
+		FetchMaxInterval:     5 * time.Minute,
 	}
 }
 

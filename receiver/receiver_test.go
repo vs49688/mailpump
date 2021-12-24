@@ -122,14 +122,14 @@ func TestReceiver(t *testing.T) {
 
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
-		HostPort:     addr,
-		Username:     "username",
-		Password:     "password",
-		Mailbox:      "INBOX",
-		TLS:          false,
-		TLSConfig:    nil,
-		Channel:      ch,
-		Debug:        false,
+		HostPort:             addr,
+		Username:             "username",
+		Password:             "password",
+		Mailbox:              "INBOX",
+		TLS:                  false,
+		TLSConfig:            nil,
+		Channel:              ch,
+		Debug:                false,
 		IDLEFallbackInterval: 1 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
@@ -156,14 +156,14 @@ func TestLogoutWhenDisconnected(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
-		HostPort:     "0.0.0.0:993",
-		Username:     "username",
-		Password:     "password",
-		Mailbox:      "INBOX",
-		TLS:          false,
-		TLSConfig:    nil,
-		Channel:      ch,
-		Debug:        true,
+		HostPort:             "0.0.0.0:993",
+		Username:             "username",
+		Password:             "password",
+		Mailbox:              "INBOX",
+		TLS:                  false,
+		TLSConfig:            nil,
+		Channel:              ch,
+		Debug:                true,
 		IDLEFallbackInterval: 1 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
@@ -184,14 +184,14 @@ func TestImmediateLogout(t *testing.T) {
 
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
-		HostPort:     addr,
-		Username:     "username",
-		Password:     "password",
-		Mailbox:      "INBOX",
-		TLS:          false,
-		TLSConfig:    nil,
-		Channel:      ch,
-		Debug:        true,
+		HostPort:             addr,
+		Username:             "username",
+		Password:             "password",
+		Mailbox:              "INBOX",
+		TLS:                  false,
+		TLSConfig:            nil,
+		Channel:              ch,
+		Debug:                true,
 		IDLEFallbackInterval: 1 * time.Second,
 	}, &client.Factory{})
 	assert.NoError(t, err)

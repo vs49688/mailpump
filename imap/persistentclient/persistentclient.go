@@ -154,7 +154,6 @@ func (c *PersistentIMAPClient) Mailbox() *imap.MailboxStatus {
 		return &imap.MailboxStatus{Name: c.cfg.Mailbox}
 	}
 
-
 	r := make(chan *imap.MailboxStatus)
 	c.ch <- mailboxRequest{r: r}
 	return <-r
@@ -193,7 +192,6 @@ func (c *PersistentIMAPClient) log() *log.Entry {
 	}
 	return e
 }
-
 
 func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
 	f := &client.Factory{}

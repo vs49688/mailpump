@@ -29,19 +29,19 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 	ch := make(chan *imap.Message, 20)
 
 	recv, err := receiver.NewReceiver(&receiver.Config{
-		HostPort:     cfg.SourceHostPort,
-		Username:     cfg.SourceUsername,
-		Password:     cfg.SourcePassword,
-		Mailbox:      cfg.SourceMailbox,
-		TLS:          cfg.SourceTLS,
-		TLSConfig:    cfg.SourceTLSConfig,
-		Debug:        cfg.SourceDebug,
+		HostPort:             cfg.SourceHostPort,
+		Username:             cfg.SourceUsername,
+		Password:             cfg.SourcePassword,
+		Mailbox:              cfg.SourceMailbox,
+		TLS:                  cfg.SourceTLS,
+		TLSConfig:            cfg.SourceTLSConfig,
+		Debug:                cfg.SourceDebug,
 		IDLEFallbackInterval: cfg.IDLEFallbackInterval,
-		BatchSize:    cfg.BatchSize,
-		DisableDeletions: cfg.DisableDeletions,
-		FetchBufferSize: cfg.FetchBufferSize,
-		FetchMaxInterval: cfg.FetchMaxInterval,
-		Channel:      ch,
+		BatchSize:            cfg.BatchSize,
+		DisableDeletions:     cfg.DisableDeletions,
+		FetchBufferSize:      cfg.FetchBufferSize,
+		FetchMaxInterval:     cfg.FetchMaxInterval,
+		Channel:              ch,
 	}, cfg.SourceFactory)
 
 	if err != nil {

@@ -47,10 +47,10 @@ type Config struct {
 	DestDebug     bool
 
 	IDLEFallbackInterval time.Duration
-	BatchSize    uint
-	DisableDeletions bool
-	FetchBufferSize uint
-	FetchMaxInterval time.Duration
+	BatchSize            uint
+	DisableDeletions     bool
+	FetchBufferSize      uint
+	FetchMaxInterval     time.Duration
 
 	DoneChan chan<- error
 	StopChan <-chan struct{}

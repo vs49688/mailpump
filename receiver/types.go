@@ -36,10 +36,10 @@ type Config struct {
 	Debug     bool
 
 	IDLEFallbackInterval time.Duration
-	BatchSize    uint
-	FetchBufferSize uint
-	FetchMaxInterval time.Duration
-	Channel      chan<- *imap.Message
+	BatchSize            uint
+	FetchBufferSize      uint
+	FetchMaxInterval     time.Duration
+	Channel              chan<- *imap.Message
 
 	// DisableDeletions if set, will cause deletion requests to be ignored.
 	// This is intended solely as a data-loss prevention measure when debugging
@@ -159,12 +159,12 @@ type MailReceiver struct {
 	// receiver -> external, message notifications
 	outChannel chan<- *imap.Message
 
-	messages     map[uint32]*messageState
-	batchSize    uint
+	messages             map[uint32]*messageState
+	batchSize            uint
 	idleFallbackInterval time.Duration
-	fetchBufferSize uint
-	fetchMaxInterval time.Duration
-	disableDeletions bool
+	fetchBufferSize      uint
+	fetchMaxInterval     time.Duration
+	disableDeletions     bool
 
 	hasQuit  chan struct{}
 	wantQuit chan struct{}

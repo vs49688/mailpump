@@ -71,11 +71,11 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 
 		messages: map[uint32]*messageState{},
 
-		batchSize:    batchSize,
+		batchSize:            batchSize,
 		idleFallbackInterval: idleFallbackInterval,
-		fetchBufferSize: fetchBufferSize,
-		fetchMaxInterval: fetchMaxInterval,
-		disableDeletions: cfg.DisableDeletions,
+		fetchBufferSize:      fetchBufferSize,
+		fetchMaxInterval:     fetchMaxInterval,
+		disableDeletions:     cfg.DisableDeletions,
 
 		hasQuit:  make(chan struct{}, 1),
 		wantQuit: make(chan struct{}, 1),

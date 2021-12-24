@@ -115,9 +115,9 @@ type PersistentIMAPClient struct {
 	// IDLEs need special handling
 	// We need the user to be able to cancel
 	// the request even if we're not connected
-	idle          *idleRequest
-	idleChannel   chan idleRequest
-	stopIdle      <-chan struct{}
+	idle        *idleRequest
+	idleChannel chan idleRequest
+	stopIdle    <-chan struct{}
 }
 
 type Factory struct {

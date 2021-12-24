@@ -75,10 +75,10 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 // Ack acknowledges the processing of a message. If error is nil, it is assumed that
 // the message has fully processed and persisted, and thus is EXPUNGE'd from the server.
 func (mr *MailReceiver) Ack(UID uint32, error error) {
-	if error != nil {
-		log.WithField("uid", UID).Trace("ack_called")
+	if error == nil {
+		log.WithField("uid", UID).Trace("receiver_ack_called")
 	} else {
-		log.WithError(error).WithField("uid", UID).Trace("ack_called")
+		log.WithError(error).WithField("uid", UID).Trace("receiver_ack_called")
 	}
 
 	if UID == 0 {
@@ -86,6 +86,7 @@ func (mr *MailReceiver) Ack(UID uint32, error error) {
 	}
 
 	mr.ackChannel <- ackRequest{UID: UID, Error: error}
+	log.WithField("uid", UID).Trace("receiver_ack_return")
 }
 
 func withMessageState(mstate *messageState) *log.Entry {

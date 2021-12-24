@@ -24,7 +24,37 @@ import (
 	imap2 "github.com/vs49688/mailpump/imap"
 )
 
-func doFetch(client imap2.Client, result chan<- interface{}) bool {
+// buildCurrentSequence builds an imap.SeqSet instance containing
+// the sequence numbers of all the current "known" messages.
+func (mr *MailReceiver) buildCurrentSequence() imap.SeqSet {
+	existing := imap.SeqSet{}
+	for _, k := range mr.messages {
+		existing.AddNum(k.SeqNum)
+	}
+
+	return existing
+}
+
+// buildSeqSet builds an imap.SeqSet instance containing
+// the sequence numbers of all messages to fetch, excluding those already
+// in existing, up do a maximum size.
+func buildSeqSet(existing imap.SeqSet, mbStatus *imap.MailboxStatus, maxSize uint) imap.SeqSet {
+	seq := imap.SeqSet{}
+
+	i := uint(0)
+	for next := uint32(1); i < maxSize && next <= mbStatus.Messages; next += 1 {
+		if existing.Contains(next) {
+			continue
+		}
+
+		seq.AddNum(next)
+		i += 1
+	}
+
+	return seq
+}
+
+func doFetch(client imap2.Client, existing imap.SeqSet, maxSize uint, result chan<- interface{}) bool {
 	log.Trace("receiver_fetching_messages")
 
 	mbStatus := client.Mailbox()
@@ -45,14 +75,16 @@ func doFetch(client imap2.Client, result chan<- interface{}) bool {
 		return false
 	}
 
+	seqset := buildSeqSet(existing, mbStatus, maxSize)
+	if seqset.Empty() {
+		return false
+	}
+
 	ch := make(chan *imap.Message)
 	done := make(chan error)
 
-	seqset := new(imap.SeqSet)
-	seqset.AddRange(1, 0)
-
 	go func() {
-		done <- client.Fetch(seqset, []imap.FetchItem{imap.FetchUid, imap.FetchFlags, imap.FetchRFC822}, ch)
+		done <- client.Fetch(&seqset, []imap.FetchItem{imap.FetchUid, imap.FetchFlags, imap.FetchRFC822}, ch)
 	}()
 
 	uids, messages := readMessages(ch)

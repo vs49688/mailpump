@@ -60,7 +60,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		client:        c,
 		updates:       updateChannel,
 		imapChannel:   make(chan interface{}),
-		ackChannel:    make(chan ackRequest, 10),
+		ackChannel:    make(chan ackRequest, fetchBufferSize),
 		updateChannel: make(chan *messageState, 10),
 		outChannel:    cfg.Channel,
 
@@ -341,8 +341,10 @@ func (mr *MailReceiver) run() {
 				log.Trace("receiver_fetch_start")
 				wantFetch.Reset()
 				setState(StateInFetch)
+
+				existing := mr.buildCurrentSequence()
 				go func() {
-					_ = doFetch(mr.client, mr.imapChannel)
+					_ = doFetch(mr.client, existing, mr.fetchBufferSize, mr.imapChannel)
 					opChan <- OperationFetchFinish
 				}()
 			} else if !wantQuit.IsFlagged() {

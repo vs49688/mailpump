@@ -197,3 +197,49 @@ func TestImmediateLogout(t *testing.T) {
 	assert.NoError(t, err)
 	defer receiver.Close()
 }
+
+func TestSequenceGeneration(t *testing.T) {
+	mbStatus := imap.MailboxStatus{
+		Name:     "INBOX",
+		Messages: 53,
+	}
+
+	mr := MailReceiver{
+		messages: map[uint32]*messageState{
+			1:  {UID: 1, SeqNum: 1},
+			2:  {UID: 2, SeqNum: 2},
+			10: {UID: 10, SeqNum: 10},
+		},
+		fetchBufferSize: 20,
+	}
+
+	existing := imap.SeqSet{}
+	for _, k := range mr.messages {
+		existing.AddNum(k.SeqNum)
+	}
+
+	toFetch := buildSeqSet(existing, &mbStatus, mr.fetchBufferSize)
+
+	expected := imap.SeqSet{}
+	expected.AddRange(3, 9)
+	expected.AddRange(11, 23)
+	assert.Equal(t, expected, toFetch)
+
+	for i := 3; i <= 9; i++ {
+		mr.messages[uint32(i)] = &messageState{UID: uint32(i), SeqNum: uint32(i)}
+	}
+
+	for i := 11; i <= 23; i++ {
+		mr.messages[uint32(i)] = &messageState{UID: uint32(i), SeqNum: uint32(i)}
+	}
+
+	existing = imap.SeqSet{}
+	for _, k := range mr.messages {
+		existing.AddNum(k.SeqNum)
+	}
+
+	expected = imap.SeqSet{}
+	expected.AddRange(24, 43)
+	toFetch = buildSeqSet(existing, &mbStatus, mr.fetchBufferSize)
+	assert.Equal(t, expected, toFetch)
+}

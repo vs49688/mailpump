@@ -36,7 +36,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 		TLS:          cfg.SourceTLS,
 		TLSConfig:    cfg.SourceTLSConfig,
 		Debug:        cfg.SourceDebug,
-		TickInterval: cfg.TickInterval,
+		IDLEFallbackInterval: cfg.IDLEFallbackInterval,
 		BatchSize:    cfg.BatchSize,
 		DisableDeletions: cfg.DisableDeletions,
 		FetchBufferSize: cfg.FetchBufferSize,

@@ -130,7 +130,7 @@ func TestReceiver(t *testing.T) {
 		TLSConfig:    nil,
 		Channel:      ch,
 		Debug:        false,
-		TickInterval: 1 * time.Second,
+		IDLEFallbackInterval: 1 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
 	})
@@ -164,7 +164,7 @@ func TestLogoutWhenDisconnected(t *testing.T) {
 		TLSConfig:    nil,
 		Channel:      ch,
 		Debug:        true,
-		TickInterval: 1 * time.Second,
+		IDLEFallbackInterval: 1 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
 	})
@@ -192,7 +192,7 @@ func TestImmediateLogout(t *testing.T) {
 		TLSConfig:    nil,
 		Channel:      ch,
 		Debug:        true,
-		TickInterval: 1 * time.Second,
+		IDLEFallbackInterval: 1 * time.Second,
 	}, &client.Factory{})
 	assert.NoError(t, err)
 	defer receiver.Close()

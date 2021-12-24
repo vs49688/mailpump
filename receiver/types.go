@@ -34,9 +34,8 @@ type Config struct {
 	TLS       bool
 	TLSConfig *tls.Config
 	Debug     bool
-	// TickInterval is the interval between "ticks" when no other
-	// activity has occurred.
-	TickInterval time.Duration
+
+	IDLEFallbackInterval time.Duration
 	BatchSize    uint
 	FetchBufferSize uint
 	Channel      chan<- *imap.Message
@@ -161,7 +160,7 @@ type MailReceiver struct {
 
 	messages     map[uint32]*messageState
 	batchSize    uint
-	tickInterval time.Duration
+	idleFallbackInterval time.Duration
 	fetchBufferSize uint
 	disableDeletions bool
 

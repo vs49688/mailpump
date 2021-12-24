@@ -46,9 +46,9 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		batchSize = 15
 	}
 
-	tickInterval := cfg.TickInterval
-	if tickInterval == 0 {
-		tickInterval = 1 * time.Minute
+	idleFallbackInterval := cfg.IDLEFallbackInterval
+	if idleFallbackInterval == 0 {
+		idleFallbackInterval = 1 * time.Minute
 	}
 
 	fetchBufferSize := cfg.FetchBufferSize
@@ -67,7 +67,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		messages: map[uint32]*messageState{},
 
 		batchSize:    batchSize,
-		tickInterval: tickInterval,
+		idleFallbackInterval: idleFallbackInterval,
 		fetchBufferSize: fetchBufferSize,
 		disableDeletions: cfg.DisableDeletions,
 
@@ -353,7 +353,7 @@ func (mr *MailReceiver) run() {
 				go func() {
 					err := mr.client.Idle(stopIdleChannel, &client2.IdleOptions{
 						LogoutTimeout: 250 * time.Second, // Yahoo kills us after 5 mintues
-						PollInterval:  mr.tickInterval,
+						PollInterval:  mr.idleFallbackInterval,
 					})
 					if err != nil {
 						log.WithError(err).Warn("receiver_idle_failed")

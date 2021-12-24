@@ -46,7 +46,7 @@ type Config struct {
 	DestFactory   imap.ClientFactory
 	DestDebug     bool
 
-	TickInterval time.Duration
+	IDLEFallbackInterval time.Duration
 	BatchSize    uint
 	DisableDeletions bool
 	FetchBufferSize uint

@@ -70,7 +70,7 @@ func runPump(cfg *CliConfig) error {
 		"dest_debug":             cfg.DestDebug,
 		"log_level":              cfg.LogLevel,
 		"log_format":             cfg.LogFormat,
-		"tick_interval":          cfg.TickInterval,
+		"idle_fallback_interval": cfg.IDLEFallbackInterval,
 		"batch_size":             cfg.BatchSize,
 		"fetch_buffer_size":      cfg.FetchBufferSize,
 	}).Info("starting")

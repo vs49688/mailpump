@@ -50,7 +50,7 @@ type CliConfig struct {
 	DestDebug           bool          `json:"dest_debug"`
 	LogLevel            string        `json:"log_level"`
 	LogFormat           string        `json:"log_format"`
-	TickInterval        time.Duration `json:"tick_interval"`
+	IDLEFallbackInterval time.Duration `json:"idle_fallback_interval"`
 	BatchSize           uint          `json:"batch_size"`
 	DisableDeletions    bool          `json:"disable_deletions"`
 	FetchBufferSize     uint          `json:"fetch_buffer_size"`
@@ -66,7 +66,7 @@ func DefaultConfig() CliConfig {
 		DestDebug:           false,
 		LogLevel:            "info",
 		LogFormat:           "text",
-		TickInterval:        time.Minute,
+		IDLEFallbackInterval: time.Minute,
 		BatchSize:           15,
 		DisableDeletions:    false,
 		FetchBufferSize:     20,
@@ -198,11 +198,11 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Value:       def.LogFormat,
 		},
 		&cli.DurationFlag{
-			Name:        "tick-interval",
-			Usage:       "tick interval",
-			EnvVars:     []string{"MAILPUMP_TICK_INTERVAL"},
-			Destination: &cfg.TickInterval,
-			Value:       def.TickInterval,
+			Name:        "idle-fallback-interval",
+			Usage:       "fallback poll interval for servers that don't support IDLE",
+			EnvVars:     []string{"MAILPUMP_IDLE_FALLBACK_INTERVAL"},
+			Destination: &cfg.IDLEFallbackInterval,
+			Value:       def.IDLEFallbackInterval,
 		},
 		&cli.UintFlag{
 			Name:        "batch-size",
@@ -348,8 +348,8 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 
 	pumpConfig.DestDebug = cfg.DestDebug
 
-	if cfg.TickInterval == 0 {
-		pumpConfig.TickInterval = def.TickInterval
+	if cfg.IDLEFallbackInterval == 0 {
+		pumpConfig.IDLEFallbackInterval = def.IDLEFallbackInterval
 	}
 
 	if cfg.BatchSize == 0 {

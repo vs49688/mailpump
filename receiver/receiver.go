@@ -364,6 +364,7 @@ func (mr *MailReceiver) run() {
 				if wantQuit.IsFlagged() || wantFetch.IsFlagged() || wantDelete.IsFlagged() || len(nextToProcess) > 0 {
 					wantStopIdle.Flag()
 				}
+				wantFetch.Flag()
 			case OperationIDLEFinish:
 				log.Trace("receiver_idle_finish")
 				wantStopIdle.Reset()

@@ -324,7 +324,7 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	pumpConfig.DestMailbox = destMailbox
 	pumpConfig.DestTLS = destTLS
 	pumpConfig.DestTLSConfig = nil
-	if cfg.SourceTLSSkipVerify {
+	if cfg.DestTLSSkipVerify {
 		pumpConfig.DestTLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 

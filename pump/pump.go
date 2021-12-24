@@ -38,6 +38,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 		Debug:        cfg.SourceDebug,
 		TickInterval: cfg.TickInterval,
 		BatchSize:    cfg.BatchSize,
+		DisableDeletions: cfg.DisableDeletions,
 		Channel:      ch,
 	}, cfg.SourceFactory)
 

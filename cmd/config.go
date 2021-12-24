@@ -52,6 +52,7 @@ type CliConfig struct {
 	LogFormat           string        `json:"log_format"`
 	TickInterval        time.Duration `json:"tick_interval"`
 	BatchSize           uint          `json:"batch_size"`
+	DisableDeletions    bool          `json:"disable_deletions"`
 }
 
 func DefaultConfig() CliConfig {
@@ -66,6 +67,7 @@ func DefaultConfig() CliConfig {
 		LogFormat:           "text",
 		TickInterval:        time.Minute,
 		BatchSize:           15,
+		DisableDeletions:    false,
 	}
 }
 
@@ -207,6 +209,14 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Destination: &cfg.BatchSize,
 			Value:       def.BatchSize,
 		},
+		&cli.BoolFlag{
+			Name:        "disable-deletions",
+			Usage:       "disable deletions. for debugging only",
+			EnvVars:     []string{"MAILPUMP_DISABLE_DELETIONS"},
+			Destination: &cfg.DisableDeletions,
+			Value:       def.DisableDeletions,
+			Hidden:      true,
+		},
 	}
 }
 
@@ -336,5 +346,8 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	if cfg.BatchSize == 0 {
 		pumpConfig.BatchSize = def.BatchSize
 	}
+
+	pumpConfig.DisableDeletions = cfg.DisableDeletions
+
 	return nil
 }

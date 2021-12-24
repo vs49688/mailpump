@@ -63,6 +63,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 
 		batchSize:    batchSize,
 		tickInterval: tickInterval,
+		disableDeletions: cfg.DisableDeletions,
 
 		hasQuit:  make(chan struct{}, 1),
 		wantQuit: make(chan struct{}, 1),
@@ -253,7 +254,7 @@ func (mr *MailReceiver) run() {
 				if msg := mr.handleDelete(&r); msg != nil {
 					// Flag if delete failed
 					nextToProcess[msg.UID] = msg
-					wantDelete.Flag()
+					wantDelete.FlagIf(!mr.disableDeletions)
 				}
 			default:
 				log.WithField("result", r).Panic("receiver_invalid_result")
@@ -262,7 +263,7 @@ func (mr *MailReceiver) run() {
 			// ACKs should be handled in any state
 			if msg := mr.handleAck(&ack); msg != nil {
 				nextToProcess[msg.UID] = msg
-				wantDelete.Flag()
+				wantDelete.FlagIf(!mr.disableDeletions)
 			}
 		case <-time.After(5 * time.Second):
 			op = OperationTimeout
@@ -282,7 +283,7 @@ func (mr *MailReceiver) run() {
 				break
 			case OperationTimeout:
 				wantFetch.Flag()
-				wantDelete.Flag()
+				wantDelete.FlagIf(!mr.disableDeletions)
 			default:
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
 			}
@@ -312,7 +313,7 @@ func (mr *MailReceiver) run() {
 			}
 
 			if uint(len(nextToProcess)) >= mr.batchSize {
-				wantDelete.Flag()
+				wantDelete.FlagIf(!mr.disableDeletions)
 			}
 
 			if wantDelete.IsFlagged() {

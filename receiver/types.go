@@ -39,6 +39,11 @@ type Config struct {
 	TickInterval time.Duration
 	BatchSize    uint
 	Channel      chan<- *imap.Message
+
+	// DisableDeletions if set, will cause deletion requests to be ignored.
+	// This is intended solely as a data-loss prevention measure when debugging
+	// against live accounts.
+	DisableDeletions bool
 }
 
 type ackRequest struct {
@@ -156,6 +161,7 @@ type MailReceiver struct {
 	messages     map[uint32]*messageState
 	batchSize    uint
 	tickInterval time.Duration
+	disableDeletions bool
 
 	hasQuit  chan struct{}
 	wantQuit chan struct{}

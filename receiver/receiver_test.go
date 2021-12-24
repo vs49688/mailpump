@@ -142,7 +142,7 @@ func TestReceiver(t *testing.T) {
 	receiver.Ack(msg.Uid, nil)
 
 	// Add another message, the receiver should receive it via IDLE
-	// or a force-fetch via timeout
+	// or a force-fet,ch via timeout
 	testMsg, _ = makeTestMessage(t, "<02@localhost>")
 	testMsg.Uid = 2
 	err = ing.IngestMessageSync(testMsg)

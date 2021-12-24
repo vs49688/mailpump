@@ -357,17 +357,20 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 
 	pumpConfig.DestDebug = cfg.DestDebug
 
-	if cfg.IDLEFallbackInterval == 0 {
+	pumpConfig.IDLEFallbackInterval = cfg.IDLEFallbackInterval
+	if pumpConfig.IDLEFallbackInterval == 0 {
 		pumpConfig.IDLEFallbackInterval = def.IDLEFallbackInterval
 	}
 
-	if cfg.BatchSize == 0 {
+	pumpConfig.BatchSize = pumpConfig.BatchSize
+	if pumpConfig.BatchSize == 0 {
 		pumpConfig.BatchSize = def.BatchSize
 	}
 
 	pumpConfig.DisableDeletions = cfg.DisableDeletions
 
-	if cfg.FetchBufferSize == 0 {
+	pumpConfig.FetchBufferSize = cfg.FetchBufferSize
+	if pumpConfig.FetchBufferSize == 0 {
 		pumpConfig.FetchBufferSize = def.FetchBufferSize
 	}
 

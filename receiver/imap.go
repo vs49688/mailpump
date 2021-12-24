@@ -58,7 +58,7 @@ func doFetch(client imap2.Client, result chan<- interface{}) bool {
 	uids, messages := readMessages(ch)
 
 	if err := <-done; err != nil {
-		log.WithError(err).Error("receiver_fetch_failed")
+		log.WithError(err).Warn("receiver_fetch_failed")
 	} else {
 		log.WithFields(log.Fields{"uids": uids}).Trace("receiver_fetch_succeeded")
 		result <- fetchResult{
@@ -115,7 +115,7 @@ func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint
 		}
 
 		if err := <-done; err != nil {
-			log.WithError(err).Error("receiver_delete_failed")
+			log.WithError(err).Warn("receiver_delete_failed")
 		}
 	}
 
@@ -123,7 +123,7 @@ func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint
 	// always seem inconsistent. If the mail server *really* doesn't want to
 	// expunge a message, there's nothing we can do anyway...
 	if err := client.Expunge(nil); err != nil {
-		log.WithError(err).Error("receiver_expunge_failed")
+		log.WithError(err).Warn("receiver_expunge_failed")
 	}
 
 	return nil

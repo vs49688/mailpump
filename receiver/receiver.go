@@ -144,9 +144,9 @@ func (mr *MailReceiver) handleDelete(r *deleteResult) *messageState {
 
 func (mr *MailReceiver) handleAck(r *ackRequest) *messageState {
 	if r.Error != nil {
-		log.WithError(r.Error).WithField("uid", r.UID).Info("receiver_got_ack")
+		log.WithError(r.Error).WithField("uid", r.UID).Warn("receiver_ack")
 	} else {
-		log.WithField("uid", r.UID).Info("receiver_got_ack")
+		log.WithField("uid", r.UID).Info("receiver_ack")
 	}
 
 	if r.Error != nil {
@@ -167,6 +167,7 @@ func (mr *MailReceiver) handleAck(r *ackRequest) *messageState {
 func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
 	switch vv := upd.(type) {
 	case *client2.StatusUpdate:
+		// This is INFO because it often contains useful info to have in the logs
 		log.WithFields(log.Fields{
 			"tag":       vv.Status.Tag,
 			"type":      vv.Status.Type,
@@ -175,12 +176,12 @@ func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
 			"info":      vv.Status.Info,
 		}).Info("receiver_got_status_update")
 	case *client2.ExpungeUpdate:
-		log.WithField("seq", vv.SeqNum).Info("receiver_got_expunge_update")
+		log.WithField("seq", vv.SeqNum).Trace("receiver_got_expunge_update")
 	case *client2.MailboxUpdate:
 		log.WithFields(log.Fields{
 			"name":     vv.Mailbox.Name,
 			"messages": vv.Mailbox.Messages,
-		}).Info("receiver_got_mailbox_update")
+		}).Trace("receiver_got_mailbox_update")
 		return true
 	}
 
@@ -317,7 +318,7 @@ func (mr *MailReceiver) run() {
 				wantDelete.Reset()
 
 				if len(nextToProcess) > 0 {
-					log.Debug("receiver_delete_start")
+					log.Trace("receiver_delete_start")
 					setState(StateInDelete)
 					go func(toProcess map[uint32]*messageState) {
 						_ = doDelete(mr.client, mr.imapChannel, toProcess)
@@ -329,7 +330,7 @@ func (mr *MailReceiver) run() {
 			}
 
 			if wantFetch.IsFlagged() {
-				log.Info("receiver_fetch_start")
+				log.Trace("receiver_fetch_start")
 				wantFetch.Reset()
 				setState(StateInFetch)
 				go func() {
@@ -337,7 +338,7 @@ func (mr *MailReceiver) run() {
 					opChan <- OperationFetchFinish
 				}()
 			} else if !wantQuit.IsFlagged() {
-				log.Info("receiver_idle_start")
+				log.Trace("receiver_idle_start")
 				setState(StateInIDLE)
 				go func() {
 					err := mr.client.Idle(stopIdleChannel, &client2.IdleOptions{
@@ -345,7 +346,7 @@ func (mr *MailReceiver) run() {
 						PollInterval:  mr.tickInterval,
 					})
 					if err != nil {
-						log.WithError(err).Trace("receiver_idle_failed")
+						log.WithError(err).Warn("receiver_idle_failed")
 					}
 					opChan <- OperationIDLEFinish
 				}()
@@ -362,7 +363,7 @@ func (mr *MailReceiver) run() {
 					wantStopIdle.Flag()
 				}
 			case OperationIDLEFinish:
-				log.Info("receiver_idle_finish")
+				log.Trace("receiver_idle_finish")
 				wantStopIdle.Reset()
 				setState(StateNone)
 				opChan <- OperationNone
@@ -374,7 +375,7 @@ func (mr *MailReceiver) run() {
 			case OperationNone:
 				break
 			case OperationFetchFinish:
-				log.Info("receiver_fetch_finish")
+				log.Trace("receiver_fetch_finish")
 				setState(StateNone)
 				opChan <- OperationNone
 			case OperationTimeout:
@@ -387,7 +388,7 @@ func (mr *MailReceiver) run() {
 			case OperationNone:
 				break
 			case OperationDeleteFinish:
-				log.Info("receiver_delete_finish")
+				log.Trace("receiver_delete_finish")
 				setState(StateNone)
 				opChan <- OperationNone
 			case OperationTimeout:

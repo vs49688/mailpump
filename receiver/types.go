@@ -38,6 +38,7 @@ type Config struct {
 	// activity has occurred.
 	TickInterval time.Duration
 	BatchSize    uint
+	FetchBufferSize uint
 	Channel      chan<- *imap.Message
 
 	// DisableDeletions if set, will cause deletion requests to be ignored.
@@ -161,6 +162,7 @@ type MailReceiver struct {
 	messages     map[uint32]*messageState
 	batchSize    uint
 	tickInterval time.Duration
+	fetchBufferSize uint
 	disableDeletions bool
 
 	hasQuit  chan struct{}

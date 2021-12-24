@@ -51,6 +51,11 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		tickInterval = 1 * time.Minute
 	}
 
+	fetchBufferSize := cfg.FetchBufferSize
+	if fetchBufferSize == 0 {
+		fetchBufferSize = 20
+	}
+
 	mr := &MailReceiver{
 		client:        c,
 		updates:       updateChannel,
@@ -63,6 +68,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 
 		batchSize:    batchSize,
 		tickInterval: tickInterval,
+		fetchBufferSize: fetchBufferSize,
 		disableDeletions: cfg.DisableDeletions,
 
 		hasQuit:  make(chan struct{}, 1),

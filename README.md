@@ -40,6 +40,7 @@ GLOBAL OPTIONS:
    --log-format value            logging format (text/json) (default: "text") [$MAILPUMP_LOG_FORMAT]
    --tick-interval value         tick interval (default: 1m0s) [$MAILPUMP_TICK_INTERVAL]
    --batch-size value            deletion batch size (default: 15) [$MAILPUMP_BATCH_SIZE]
+   --fetch-buffer-size value     fetch buffer size (default: 20) [$MAILPUMP_FETCH_BUFFER_SIZE]
    --help, -h                    show help (default: false)
 ```
 

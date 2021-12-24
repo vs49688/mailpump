@@ -49,6 +49,7 @@ type Config struct {
 	TickInterval time.Duration
 	BatchSize    uint
 	DisableDeletions bool
+	FetchBufferSize uint
 
 	DoneChan chan<- error
 	StopChan <-chan struct{}

@@ -72,6 +72,7 @@ func runPump(cfg *CliConfig) error {
 		"log_format":             cfg.LogFormat,
 		"tick_interval":          cfg.TickInterval,
 		"batch_size":             cfg.BatchSize,
+		"fetch_buffer_size":      cfg.FetchBufferSize,
 	}).Info("starting")
 
 	pumpConfig := pump.Config{}

@@ -53,6 +53,7 @@ type CliConfig struct {
 	TickInterval        time.Duration `json:"tick_interval"`
 	BatchSize           uint          `json:"batch_size"`
 	DisableDeletions    bool          `json:"disable_deletions"`
+	FetchBufferSize     uint          `json:"fetch_buffer_size"`
 }
 
 func DefaultConfig() CliConfig {
@@ -68,6 +69,7 @@ func DefaultConfig() CliConfig {
 		TickInterval:        time.Minute,
 		BatchSize:           15,
 		DisableDeletions:    false,
+		FetchBufferSize:     20,
 	}
 }
 
@@ -217,6 +219,13 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Value:       def.DisableDeletions,
 			Hidden:      true,
 		},
+		&cli.UintFlag{
+			Name:        "fetch-buffer-size",
+			Usage:       "fetch buffer size",
+			EnvVars:     []string{"MAILPUMP_FETCH_BUFFER_SIZE"},
+			Destination: &cfg.FetchBufferSize,
+			Value:       def.FetchBufferSize,
+		},
 	}
 }
 
@@ -348,6 +357,10 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	}
 
 	pumpConfig.DisableDeletions = cfg.DisableDeletions
+
+	if cfg.FetchBufferSize == 0 {
+		pumpConfig.FetchBufferSize = def.FetchBufferSize
+	}
 
 	return nil
 }

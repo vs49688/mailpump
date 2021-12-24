@@ -50,6 +50,7 @@ type Config struct {
 	BatchSize    uint
 	DisableDeletions bool
 	FetchBufferSize uint
+	FetchMaxInterval time.Duration
 
 	DoneChan chan<- error
 	StopChan <-chan struct{}

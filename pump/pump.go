@@ -40,6 +40,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 		BatchSize:    cfg.BatchSize,
 		DisableDeletions: cfg.DisableDeletions,
 		FetchBufferSize: cfg.FetchBufferSize,
+		FetchMaxInterval: cfg.FetchMaxInterval,
 		Channel:      ch,
 	}, cfg.SourceFactory)
 

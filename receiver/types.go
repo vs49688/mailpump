@@ -38,6 +38,7 @@ type Config struct {
 	IDLEFallbackInterval time.Duration
 	BatchSize    uint
 	FetchBufferSize uint
+	FetchMaxInterval time.Duration
 	Channel      chan<- *imap.Message
 
 	// DisableDeletions if set, will cause deletion requests to be ignored.
@@ -162,6 +163,7 @@ type MailReceiver struct {
 	batchSize    uint
 	idleFallbackInterval time.Duration
 	fetchBufferSize uint
+	fetchMaxInterval time.Duration
 	disableDeletions bool
 
 	hasQuit  chan struct{}

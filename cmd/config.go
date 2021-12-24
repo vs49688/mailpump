@@ -54,6 +54,7 @@ type CliConfig struct {
 	BatchSize           uint          `json:"batch_size"`
 	DisableDeletions    bool          `json:"disable_deletions"`
 	FetchBufferSize     uint          `json:"fetch_buffer_size"`
+	FetchMaxInterval    time.Duration `json:"fetch_max_interval"`
 }
 
 func DefaultConfig() CliConfig {
@@ -70,6 +71,7 @@ func DefaultConfig() CliConfig {
 		BatchSize:           15,
 		DisableDeletions:    false,
 		FetchBufferSize:     20,
+		FetchMaxInterval:    5 * time.Minute,
 	}
 }
 
@@ -226,6 +228,13 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Destination: &cfg.FetchBufferSize,
 			Value:       def.FetchBufferSize,
 		},
+		&cli.DurationFlag{
+			Name:        "fetch-max-interval",
+			Usage:       "maximum interval between fetches. can abort IDLE",
+			EnvVars:     []string{"MAILPUMP_FETCH_MAX_INTERVAL"},
+			Destination: &cfg.FetchMaxInterval,
+			Value:       def.FetchMaxInterval,
+		},
 	}
 }
 
@@ -360,6 +369,11 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 
 	if cfg.FetchBufferSize == 0 {
 		pumpConfig.FetchBufferSize = def.FetchBufferSize
+	}
+
+	pumpConfig.FetchMaxInterval = cfg.FetchMaxInterval
+	if pumpConfig.FetchMaxInterval == 0 {
+		pumpConfig.FetchMaxInterval = def.FetchMaxInterval
 	}
 
 	return nil

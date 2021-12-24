@@ -56,6 +56,11 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		fetchBufferSize = 20
 	}
 
+	fetchMaxInterval := cfg.FetchMaxInterval
+	if fetchMaxInterval == 0 {
+		fetchMaxInterval = 5 * time.Minute
+	}
+
 	mr := &MailReceiver{
 		client:        c,
 		updates:       updateChannel,
@@ -69,6 +74,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		batchSize:    batchSize,
 		idleFallbackInterval: idleFallbackInterval,
 		fetchBufferSize: fetchBufferSize,
+		fetchMaxInterval: fetchMaxInterval,
 		disableDeletions: cfg.DisableDeletions,
 
 		hasQuit:  make(chan struct{}, 1),
@@ -271,7 +277,7 @@ func (mr *MailReceiver) run() {
 				nextToProcess[msg.UID] = msg
 				wantDelete.FlagIf(!mr.disableDeletions)
 			}
-		case <-time.After(5 * time.Second):
+		case <-time.After(mr.fetchMaxInterval):
 			op = OperationTimeout
 		case op = <-opChan:
 			break
@@ -403,6 +409,7 @@ func (mr *MailReceiver) run() {
 				setState(StateNone)
 				opChan <- OperationNone
 			case OperationTimeout:
+				wantFetch.Flag()
 				break
 			default:
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")

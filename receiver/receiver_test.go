@@ -20,6 +20,7 @@ package receiver
 
 import (
 	"bytes"
+	"crypto/tls"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
@@ -109,7 +110,7 @@ func TestReceiver(t *testing.T) {
 		Password:  "password",
 		Mailbox:   "INBOX",
 		TLS:       false,
-		TLSConfig: nil,
+		TLSConfig: &tls.Config{InsecureSkipVerify: true},
 		Debug:     false,
 		DoneChan:  ingCh,
 	}, &client.Factory{})
@@ -127,10 +128,15 @@ func TestReceiver(t *testing.T) {
 		Password:             "password",
 		Mailbox:              "INBOX",
 		TLS:                  false,
-		TLSConfig:            nil,
+		TLSConfig:            &tls.Config{InsecureSkipVerify: true},
 		Channel:              ch,
 		Debug:                false,
 		IDLEFallbackInterval: 1 * time.Second,
+
+		// The go-imap server doesn't always send mailbox updates,
+		// so depending on which state the receiver's in when this is
+		// ingested, we may need a force-fetch.
+		FetchMaxInterval:     5 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
 	})
@@ -139,17 +145,24 @@ func TestReceiver(t *testing.T) {
 
 	// Get our initial message and Ack it
 	msg := <-ch
+	assert.Equal(t, uint32(1), msg.Uid)
 	receiver.Ack(msg.Uid, nil)
 
+	t.Log("Ingesting Message 2")
 	// Add another message, the receiver should receive it via IDLE
-	// or a force-fet,ch via timeout
+	// or a force-fetch via timeout
 	testMsg, _ = makeTestMessage(t, "<02@localhost>")
 	testMsg.Uid = 2
 	err = ing.IngestMessageSync(testMsg)
 	assert.NoError(t, err)
 
+	t.Log("Waiting for message 2")
 	msg = <-ch
+	assert.Equal(t, uint32(2), msg.Uid)
+	close(ch)
+	t.Log("Got message 2, ACK'ing...")
 	receiver.Ack(msg.Uid, nil)
+	t.Log("ACK'ed message 2")
 }
 
 func TestLogoutWhenDisconnected(t *testing.T) {

@@ -76,6 +76,7 @@ func doFetch(client imap2.Client, existing imap.SeqSet, maxSize uint, result cha
 	}
 
 	seqset := buildSeqSet(existing, mbStatus, maxSize)
+	log.WithField("set", seqset).Trace("receiver_fetch_set")
 	if seqset.Empty() {
 		return false
 	}

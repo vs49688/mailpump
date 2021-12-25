@@ -354,6 +354,7 @@ func (mr *MailReceiver) run() {
 				log.Trace("receiver_idle_start")
 				setState(StateInIDLE)
 				go func(stop <-chan struct{}) {
+					log.Trace("receiver_idle_go_start")
 					err := mr.client.Idle(stop, &client2.IdleOptions{
 						LogoutTimeout: 250 * time.Second, // Yahoo kills us after 5 mintues
 						PollInterval:  mr.idleFallbackInterval,
@@ -362,6 +363,7 @@ func (mr *MailReceiver) run() {
 						log.WithError(err).Warn("receiver_idle_failed")
 					}
 					opChan <- OperationIDLEFinish
+					log.Trace("receiver_idle_go_end")
 				}(wantStopIdle.Channel())
 			} else {
 				goto done

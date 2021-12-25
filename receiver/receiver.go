@@ -254,9 +254,7 @@ func (mr *MailReceiver) run() {
 				}
 
 				// Only sends messages out
-				if num := mr.handleFetch(&r); num > 0 {
-					wantFetch.FlagMany(num)
-				}
+				_ = mr.handleFetch(&r)
 			case deleteResult:
 				if state != StateInDelete {
 					log.WithField("state", state).Panic("receiver_delete_outside_delete")

@@ -18,19 +18,25 @@
 
 package receiver
 
-// FlagCounter is a hybrid between a counter and a flag.
-// When FlagCounter.Counter goes above zero, an empty struct
-// is written to FlagCounter.Channel, if non-nil.
+// FlagCounter is a hybrid between a counter and a flag, with an
+// internal channel for signalling. When its count goes above zero,
+// the channel is closed.
 type FlagCounter struct {
-	Counter uint
-	Channel chan<- struct{}
+	counter uint
+	channel chan struct{}
+}
+
+func NewCounter() FlagCounter {
+	fc := FlagCounter{}
+	fc.Reset()
+	return fc
 }
 
 func (c *FlagCounter) Flag() {
-	c.Counter++
+	c.counter++
 
-	if c.Counter == 1 && c.Channel != nil {
-		c.Channel <- struct{}{}
+	if c.counter == 1 {
+		close(c.channel)
 	}
 }
 
@@ -41,18 +47,27 @@ func (c *FlagCounter) FlagIf(b bool) {
 }
 
 func (c *FlagCounter) FlagMany(count uint) {
-	old := c.Counter
-	c.Counter += count
+	old := c.counter
+	c.counter += count
 
-	if old == 0 && count != 0 && c.Channel != nil {
-		c.Channel <- struct{}{}
+	if old == 0 && count != 0 {
+		close(c.channel)
 	}
 }
 
 func (c *FlagCounter) IsFlagged() bool {
-	return c.Counter > 0
+	return c.counter > 0
 }
 
 func (c *FlagCounter) Reset() {
-	c.Counter = 0
+	c.counter = 0
+	c.channel = make(chan struct{})
+}
+
+func (c *FlagCounter) Channel() <-chan struct{} {
+	return c.channel
+}
+
+func (c *FlagCounter) Count() uint {
+	return c.counter
 }

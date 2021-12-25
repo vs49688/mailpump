@@ -205,14 +205,13 @@ func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
 func (mr *MailReceiver) run() {
 	state := StateNone
 	nextToProcess := map[uint32]*messageState{}
-	wantQuit := FlagCounter{}
+	wantQuit := NewCounter()
 
-	stopIdleChannel := make(chan struct{})
-	wantStopIdle := FlagCounter{Channel: stopIdleChannel}
+	wantStopIdle := NewCounter()
 	opChan := make(chan operation, 1)
 
-	wantFetch := FlagCounter{}  // Do we need to fetch again
-	wantDelete := FlagCounter{} // Do we need to delete
+	wantFetch := NewCounter()  // Do we need to fetch again
+	wantDelete := NewCounter() // Do we need to delete
 
 	setState := func(s sstate) {
 		log.WithFields(log.Fields{
@@ -356,8 +355,8 @@ func (mr *MailReceiver) run() {
 			} else if !wantQuit.IsFlagged() {
 				log.Trace("receiver_idle_start")
 				setState(StateInIDLE)
-				go func() {
-					err := mr.client.Idle(stopIdleChannel, &client2.IdleOptions{
+				go func(stop <-chan struct{}) {
+					err := mr.client.Idle(stop, &client2.IdleOptions{
 						LogoutTimeout: 250 * time.Second, // Yahoo kills us after 5 mintues
 						PollInterval:  mr.idleFallbackInterval,
 					})
@@ -365,7 +364,7 @@ func (mr *MailReceiver) run() {
 						log.WithError(err).Warn("receiver_idle_failed")
 					}
 					opChan <- OperationIDLEFinish
-				}()
+				}(wantStopIdle.Channel())
 			} else {
 				goto done
 			}

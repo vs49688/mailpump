@@ -362,7 +362,7 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 		pumpConfig.IDLEFallbackInterval = def.IDLEFallbackInterval
 	}
 
-	pumpConfig.BatchSize = pumpConfig.BatchSize
+	pumpConfig.BatchSize = cfg.BatchSize
 	if pumpConfig.BatchSize == 0 {
 		pumpConfig.BatchSize = def.BatchSize
 	}

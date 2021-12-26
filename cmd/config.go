@@ -299,6 +299,7 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	pumpConfig.SourceTLS = sourceTLS
 	pumpConfig.SourceTLSConfig = nil
 	if cfg.SourceTLSSkipVerify {
+		// #nosec G402
 		pumpConfig.SourceTLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
@@ -343,6 +344,7 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	pumpConfig.DestTLS = destTLS
 	pumpConfig.DestTLSConfig = nil
 	if cfg.DestTLSSkipVerify {
+		// #nosec G402
 		pumpConfig.DestTLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 

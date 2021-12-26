@@ -268,6 +268,7 @@ func (c *PersistentIMAPClient) run() {
 					nextDelay = 2 * (nextDelay - (nextDelay % (1000 * time.Millisecond)))
 				}
 
+				// #nosec G404 -- Not used for crypto
 				nextDelay += time.Duration(rand.Intn(1000)) * time.Millisecond
 				if nextDelay > c.cfg.MaxDelay {
 					nextDelay = c.cfg.MaxDelay

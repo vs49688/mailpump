@@ -1,0 +1,29 @@
+name: check
+on:
+  push:
+  pull_request:
+jobs:
+  run-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        stage:
+          - fmt
+          - vet
+          - goimports
+          - gosec
+          - race
+          - vendor
+          - tidy
+          - test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v15
+        with:
+          nix_path: nixpkgs=channel:nixos-21.11
+      - run: ./run_checks.sh ${{matrix.stage}}
+      - run: |
+          git status --porcelain
+          if [[ $(git status --porcelain) -ne 0 ]]; then
+            exit 1
+          fi

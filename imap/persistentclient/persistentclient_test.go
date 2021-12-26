@@ -1,11 +1,12 @@
 package persistentclient
 
 import (
+	"testing"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/vs49688/mailpump/imap"
-	"testing"
-	"time"
 )
 
 func TestIdleCancellation(t *testing.T) {

@@ -20,10 +20,11 @@ package persistentclient
 
 import (
 	"crypto/tls"
+	"time"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	imap2 "github.com/vs49688/mailpump/imap"
-	"time"
 )
 
 type Config struct {

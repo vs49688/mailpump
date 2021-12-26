@@ -19,10 +19,11 @@
 package client
 
 import (
-	"github.com/emersion/go-imap/client"
-	"github.com/vs49688/mailpump/imap"
 	"os"
 	"time"
+
+	"github.com/emersion/go-imap/client"
+	"github.com/vs49688/mailpump/imap"
 )
 
 type Factory struct{}

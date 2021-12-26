@@ -20,6 +20,10 @@ package ingest
 
 import (
 	"bytes"
+	"net"
+	"strings"
+	"testing"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
@@ -27,9 +31,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
-	"net"
-	"strings"
-	"testing"
 )
 
 func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox) {

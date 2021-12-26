@@ -20,6 +20,7 @@ package ingest
 
 import (
 	"crypto/tls"
+
 	"github.com/emersion/go-imap"
 	imap2 "github.com/vs49688/mailpump/imap"
 )

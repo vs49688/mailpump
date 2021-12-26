@@ -20,14 +20,15 @@ package persistentclient
 
 import (
 	"errors"
-	goImapClient "github.com/emersion/go-imap/client"
-	log "github.com/sirupsen/logrus"
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/imap/client"
 	"math/rand"
 	"net/url"
 	"sync/atomic"
 	"time"
+
+	goImapClient "github.com/emersion/go-imap/client"
+	log "github.com/sirupsen/logrus"
+	"github.com/vs49688/mailpump/imap"
+	"github.com/vs49688/mailpump/imap/client"
 )
 
 var errConnectionClosed = errors.New("connection closed")

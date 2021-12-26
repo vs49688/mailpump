@@ -21,6 +21,11 @@ package receiver
 import (
 	"bytes"
 	"crypto/tls"
+	"net"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
@@ -30,10 +35,6 @@ import (
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/ingest"
-	"net"
-	"strings"
-	"testing"
-	"time"
 )
 
 func BuildTestIMAPServer(t *testing.T) (*server.Server, string) {
@@ -136,7 +137,7 @@ func TestReceiver(t *testing.T) {
 		// The go-imap server doesn't always send mailbox updates,
 		// so depending on which state the receiver's in when this is
 		// ingested, we may need a force-fetch.
-		FetchMaxInterval:     5 * time.Second,
+		FetchMaxInterval: 5 * time.Second,
 	}, &persistentclient.Factory{
 		Mailbox: "INBOX",
 	})

@@ -21,16 +21,18 @@ package cmd
 import (
 	"crypto/tls"
 	"errors"
-	"github.com/vs49688/mailpump/imap/client"
-	"github.com/vs49688/mailpump/imap/persistentclient"
-	"github.com/vs49688/mailpump/pump"
 	"io/ioutil"
 	"net"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/vs49688/mailpump/imap/client"
+	"github.com/vs49688/mailpump/imap/persistentclient"
+	"github.com/vs49688/mailpump/pump"
+
 	"net/url"
 	"strings"
+
+	"github.com/urfave/cli/v2"
 )
 
 type CliConfig struct {

@@ -19,8 +19,9 @@
 package receiver
 
 import (
-	"github.com/emersion/go-imap"
 	"sort"
+
+	"github.com/emersion/go-imap"
 )
 
 func readMessages(ch chan *imap.Message) ([]uint32, map[uint32]*imap.Message) {

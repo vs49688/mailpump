@@ -19,10 +19,11 @@
 package receiver
 
 import (
+	"time"
+
 	client2 "github.com/emersion/go-imap/client"
 	log "github.com/sirupsen/logrus"
 	imap2 "github.com/vs49688/mailpump/imap"
-	"time"
 )
 
 func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error) {

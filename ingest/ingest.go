@@ -20,10 +20,11 @@ package ingest
 
 import (
 	"errors"
+	"sync/atomic"
+
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
 	imap2 "github.com/vs49688/mailpump/imap"
-	"sync/atomic"
 )
 
 func NewClient(cfg *Config, factory imap2.ClientFactory) (*Client, error) {

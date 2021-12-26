@@ -20,10 +20,11 @@ package pump
 
 import (
 	"crypto/tls"
+	"time"
+
 	"github.com/vs49688/mailpump/imap"
 	"github.com/vs49688/mailpump/ingest"
 	"github.com/vs49688/mailpump/receiver"
-	"time"
 )
 
 type Config struct {

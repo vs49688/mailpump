@@ -43,7 +43,6 @@ type Config struct {
 	DestMailbox   string
 	DestTLS       bool
 	DestTLSConfig *tls.Config
-	DestTransport string
 	DestFactory   imap.ClientFactory
 	DestDebug     bool
 

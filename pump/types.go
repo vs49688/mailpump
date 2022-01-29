@@ -27,24 +27,20 @@ import (
 	"github.com/vs49688/mailpump/receiver"
 )
 
-type Config struct {
-	SourceHostPort  string
-	SourceUsername  string
-	SourcePassword  string
-	SourceMailbox   string
-	SourceTLS       bool
-	SourceTLSConfig *tls.Config
-	SourceFactory   imap.ClientFactory
-	SourceDebug     bool
+type TransportConfig struct {
+	HostPort  string
+	Username  string
+	Password  string
+	Mailbox   string
+	TLS       bool
+	TLSConfig *tls.Config
+	Factory   imap.ClientFactory
+	Debug     bool
+}
 
-	DestHostPort  string
-	DestUsername  string
-	DestPassword  string
-	DestMailbox   string
-	DestTLS       bool
-	DestTLSConfig *tls.Config
-	DestFactory   imap.ClientFactory
-	DestDebug     bool
+type Config struct {
+	Source TransportConfig
+	Dest   TransportConfig
 
 	IDLEFallbackInterval time.Duration
 	BatchSize            uint

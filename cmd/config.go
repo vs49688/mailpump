@@ -21,6 +21,7 @@ package cmd
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"time"
@@ -268,10 +269,8 @@ func extractUrl(u *url.URL) (string, string, bool, error) {
 	return net.JoinHostPort(host, port), strings.TrimPrefix(u.Path, "/"), useTLS, nil
 }
 
-func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
-	def := DefaultConfig()
-
-	sourceURL, err := url.Parse(cfg.SourceURL)
+func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, transURL string, prefix string) error {
+	sourceURL, err := url.Parse(transURL)
 	if err != nil {
 		return err
 	}
@@ -281,85 +280,53 @@ func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 		return err
 	}
 
-	pumpConfig.SourceHostPort = sourceHostPort
-	pumpConfig.SourceUsername = cfg.SourceUsername
+	transConfig.HostPort = sourceHostPort
+	transConfig.Username = cfg.SourceUsername
 
 	if cfg.SourcePassword != "" {
-		pumpConfig.SourcePassword = cfg.SourcePassword
+		transConfig.Password = cfg.SourcePassword
 	} else if cfg.SourcePasswordFile != "" {
 		pass, err := ioutil.ReadFile(cfg.SourcePasswordFile)
 		if err != nil {
 			return err
 		}
 
-		pumpConfig.SourcePassword = strings.TrimSpace(string(pass))
+		transConfig.Password = strings.TrimSpace(string(pass))
 	} else {
-		return errors.New("at least one of the \"source-password\" or \"source-password-file\" flags is required")
+		return fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
 	}
 
-	pumpConfig.SourceMailbox = sourceMailbox
-	pumpConfig.SourceTLS = sourceTLS
-	pumpConfig.SourceTLSConfig = nil
+	transConfig.Mailbox = sourceMailbox
+	transConfig.TLS = sourceTLS
+	transConfig.TLSConfig = nil
 	if cfg.SourceTLSSkipVerify {
 		// #nosec G402
-		pumpConfig.SourceTLSConfig = &tls.Config{InsecureSkipVerify: true}
+		transConfig.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	if cfg.SourceTransport != "persistent" {
-		pumpConfig.SourceFactory = &client.Factory{}
+		transConfig.Factory = &client.Factory{}
 	} else {
-		pumpConfig.SourceFactory = &persistentclient.Factory{
+		transConfig.Factory = &persistentclient.Factory{
 			Mailbox:  sourceMailbox,
 			MaxDelay: 0,
 		}
 	}
 
-	pumpConfig.SourceDebug = cfg.SourceDebug
+	transConfig.Debug = cfg.SourceDebug
+	return nil
+}
 
-	destURL, err := url.Parse(cfg.DestURL)
-	if err != nil {
+func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
+	def := DefaultConfig()
+
+	if err := cfg.buildTransportConfig(&pumpConfig.Source, cfg.SourceURL, "source"); err != nil {
 		return err
 	}
 
-	destHostPort, destMailbox, destTLS, err := extractUrl(destURL)
-	if err != nil {
+	if err := cfg.buildTransportConfig(&pumpConfig.Dest, cfg.DestURL, "dest"); err != nil {
 		return err
 	}
-
-	pumpConfig.DestHostPort = destHostPort
-	pumpConfig.DestUsername = cfg.DestUsername
-
-	if cfg.DestPassword != "" {
-		pumpConfig.DestPassword = cfg.DestPassword
-	} else if cfg.DestPasswordFile != "" {
-		pass, err := ioutil.ReadFile(cfg.DestPasswordFile)
-		if err != nil {
-			return err
-		}
-
-		pumpConfig.DestPassword = strings.TrimSpace(string(pass))
-	} else {
-		return errors.New("at least one of the \"dest-password\" or \"dest-password-file\" flags is required")
-	}
-
-	pumpConfig.DestMailbox = destMailbox
-	pumpConfig.DestTLS = destTLS
-	pumpConfig.DestTLSConfig = nil
-	if cfg.DestTLSSkipVerify {
-		// #nosec G402
-		pumpConfig.DestTLSConfig = &tls.Config{InsecureSkipVerify: true}
-	}
-
-	if cfg.DestTransport != "persistent" {
-		pumpConfig.DestFactory = &client.Factory{}
-	} else {
-		pumpConfig.DestFactory = &persistentclient.Factory{
-			Mailbox:  destMailbox,
-			MaxDelay: 0,
-		}
-	}
-
-	pumpConfig.DestDebug = cfg.DestDebug
 
 	pumpConfig.IDLEFallbackInterval = cfg.IDLEFallbackInterval
 	if pumpConfig.IDLEFallbackInterval == 0 {

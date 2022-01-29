@@ -29,34 +29,34 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 	ch := make(chan *imap.Message, 20)
 
 	recv, err := receiver.NewReceiver(&receiver.Config{
-		HostPort:             cfg.SourceHostPort,
-		Username:             cfg.SourceUsername,
-		Password:             cfg.SourcePassword,
-		Mailbox:              cfg.SourceMailbox,
-		TLS:                  cfg.SourceTLS,
-		TLSConfig:            cfg.SourceTLSConfig,
-		Debug:                cfg.SourceDebug,
+		HostPort:             cfg.Source.HostPort,
+		Username:             cfg.Source.Username,
+		Password:             cfg.Source.Password,
+		Mailbox:              cfg.Source.Mailbox,
+		TLS:                  cfg.Source.TLS,
+		TLSConfig:            cfg.Source.TLSConfig,
+		Debug:                cfg.Source.Debug,
 		IDLEFallbackInterval: cfg.IDLEFallbackInterval,
 		BatchSize:            cfg.BatchSize,
 		DisableDeletions:     cfg.DisableDeletions,
 		FetchBufferSize:      cfg.FetchBufferSize,
 		FetchMaxInterval:     cfg.FetchMaxInterval,
 		Channel:              ch,
-	}, cfg.SourceFactory)
+	}, cfg.Source.Factory)
 
 	if err != nil {
 		return nil, err
 	}
 
 	ing, err := ingest.NewClient(&ingest.Config{
-		HostPort:  cfg.DestHostPort,
-		Username:  cfg.DestUsername,
-		Password:  cfg.DestPassword,
-		Mailbox:   cfg.DestMailbox,
-		TLS:       cfg.DestTLS,
-		TLSConfig: cfg.DestTLSConfig,
-		Debug:     cfg.DestDebug,
-	}, cfg.DestFactory)
+		HostPort:  cfg.Dest.HostPort,
+		Username:  cfg.Dest.Username,
+		Password:  cfg.Dest.Password,
+		Mailbox:   cfg.Dest.Mailbox,
+		TLS:       cfg.Dest.TLS,
+		TLSConfig: cfg.Dest.TLSConfig,
+		Debug:     cfg.Dest.Debug,
+	}, cfg.Dest.Factory)
 	if err != nil {
 		recv.Close()
 		return nil, err

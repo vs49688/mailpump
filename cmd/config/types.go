@@ -30,6 +30,7 @@ var (
 type IMAPConfig struct {
 	URL           string `json:"url"`
 	Username      string `json:"username"`
+	AuthMethod    string `json:"auth_method"`
 	Password      string `json:"-"`
 	PasswordFile  string `json:"password_file"`
 	TLSSkipVerify bool   `json:"tls_skip_verify"`

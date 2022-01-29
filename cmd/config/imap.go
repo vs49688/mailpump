@@ -34,6 +34,7 @@ import (
 
 func DefaultIMAPConfig() IMAPConfig {
 	return IMAPConfig{
+		AuthMethod:    "normal",
 		TLSSkipVerify: false,
 		Transport:     "persistent",
 		Debug:         false,
@@ -53,6 +54,15 @@ func (cfg *IMAPConfig) makeIMAPParameters(lowerPrefix string) []cli.Flag {
 			Required:    true,
 			Value:       def.URL,
 		},
+		&cli.StringFlag{
+			Name:        fmt.Sprintf("%v-auth-method", lowerPrefix),
+			Usage:       fmt.Sprintf("%v auth method", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_AUTH_METHOD", upperPrefix)},
+			Destination: &cfg.AuthMethod,
+			Required:    false,
+			Value:       def.AuthMethod,
+		},
+
 		&cli.StringFlag{
 			Name:        fmt.Sprintf("%v-username", lowerPrefix),
 			Usage:       fmt.Sprintf("%v imap username", lowerPrefix),

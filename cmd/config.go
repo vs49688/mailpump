@@ -275,12 +275,12 @@ func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, tr
 		return err
 	}
 
-	sourceHostPort, sourceMailbox, sourceTLS, err := extractUrl(sourceURL)
+	hostPort, mailbox, wantTLS, err := extractUrl(sourceURL)
 	if err != nil {
 		return err
 	}
 
-	transConfig.HostPort = sourceHostPort
+	transConfig.HostPort = hostPort
 	transConfig.Username = cfg.SourceUsername
 
 	if cfg.SourcePassword != "" {
@@ -296,8 +296,8 @@ func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, tr
 		return fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
 	}
 
-	transConfig.Mailbox = sourceMailbox
-	transConfig.TLS = sourceTLS
+	transConfig.Mailbox = mailbox
+	transConfig.TLS = wantTLS
 	transConfig.TLSConfig = nil
 	if cfg.SourceTLSSkipVerify {
 		// #nosec G402
@@ -308,7 +308,7 @@ func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, tr
 		transConfig.Factory = &client.Factory{}
 	} else {
 		transConfig.Factory = &persistentclient.Factory{
-			Mailbox:  sourceMailbox,
+			Mailbox:  mailbox,
 			MaxDelay: 0,
 		}
 	}

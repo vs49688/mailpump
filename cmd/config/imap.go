@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/emersion/go-sasl"
 	"github.com/urfave/cli/v2"
 
 	"github.com/vs49688/mailpump/imap"
@@ -137,6 +138,30 @@ func extractUrl(u *url.URL) (string, string, bool, error) {
 	return net.JoinHostPort(host, port), strings.TrimPrefix(u.Path, "/"), useTLS, nil
 }
 
+func (cfg *IMAPConfig) validateUserPass(prefix string) (string, string, error) {
+	if cfg.Username == "" {
+		return "", "", fmt.Errorf("\"%v-username\" is required when using %v auth", prefix, cfg.AuthMethod)
+	}
+
+	var password string
+	username := cfg.Username
+
+	if cfg.Password != "" {
+		password = cfg.Password
+	} else if cfg.PasswordFile != "" {
+		pass, err := ioutil.ReadFile(cfg.PasswordFile)
+		if err != nil {
+			return "", "", err
+		}
+
+		password = strings.TrimSpace(string(pass))
+	} else {
+		return "", "", fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
+	}
+
+	return username, password, nil
+}
+
 func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, prefix string) error {
 	sourceURL, err := url.Parse(cfg.URL)
 	if err != nil {
@@ -149,6 +174,27 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 	}
 
 	transConfig.HostPort = hostPort
+
+	cfg.AuthMethod = strings.ToUpper(cfg.AuthMethod)
+
+	switch cfg.AuthMethod {
+	case "NORMAL":
+		user, pass, err := cfg.validateUserPass(prefix)
+		if err != nil {
+			return err
+		}
+
+		transConfig.Auth = imap.NewNormalAuthenticator(user, pass)
+	case sasl.Plain:
+		user, pass, err := cfg.validateUserPass(prefix)
+		if err != nil {
+			return err
+		}
+		transConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
+	default:
+		return fmt.Errorf("unsupported auth method: %v", cfg.AuthMethod)
+
+	}
 
 	username := cfg.Username
 	var password string

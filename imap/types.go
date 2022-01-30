@@ -48,6 +48,12 @@ type Client interface {
 	FlagQuit()
 }
 
+// Authenticator provides a common interface to authenticate via
+// username/password and SASL.
+type Authenticator interface {
+	Authenticate(c *client.Client) error
+}
+
 type ClientConfig struct {
 	HostPort  string
 	Username  string

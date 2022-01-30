@@ -36,21 +36,19 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+type CliIMAPConfig struct {
+	URL           string `json:"url"`
+	Username      string `json:"username"`
+	Password      string `json:"-"`
+	PasswordFile  string `json:"password_file"`
+	TLSSkipVerify bool   `json:"tls_skip_verify"`
+	Transport     string `json:"transport"`
+	Debug         bool   `json:"debug"`
+}
+
 type CliConfig struct {
-	SourceURL            string        `json:"source_url"`
-	SourceUsername       string        `json:"source_username"`
-	SourcePassword       string        `json:"-"`
-	SourcePasswordFile   string        `json:"source_password_file"`
-	SourceTLSSkipVerify  bool          `json:"source_tls_skip_verify"`
-	SourceTransport      string        `json:"source_transport"`
-	SourceDebug          bool          `json:"source_debug"`
-	DestURL              string        `json:"dest_url"`
-	DestUsername         string        `json:"dest_username"`
-	DestPassword         string        `json:"-"`
-	DestPasswordFile     string        `json:"dest_password_file"`
-	DestTLSSkipVerify    bool          `json:"dest_tls_skip_verify"`
-	DestTransport        string        `json:"dest_transport"`
-	DestDebug            bool          `json:"dest_debug"`
+	Source               CliIMAPConfig `json:"source"`
+	Dest                 CliIMAPConfig `json:"dest"`
 	LogLevel             string        `json:"log_level"`
 	LogFormat            string        `json:"log_format"`
 	IDLEFallbackInterval time.Duration `json:"idle_fallback_interval"`
@@ -62,12 +60,16 @@ type CliConfig struct {
 
 func DefaultConfig() CliConfig {
 	return CliConfig{
-		SourceTLSSkipVerify:  false,
-		SourceTransport:      "persistent",
-		SourceDebug:          false,
-		DestTLSSkipVerify:    false,
-		DestTransport:        "persistent",
-		DestDebug:            false,
+		Source: CliIMAPConfig{
+			TLSSkipVerify: false,
+			Transport:     "persistent",
+			Debug:         false,
+		},
+		Dest: CliIMAPConfig{
+			TLSSkipVerify: false,
+			Transport:     "persistent",
+			Debug:         false,
+		},
 		LogLevel:             "info",
 		LogFormat:            "text",
 		IDLEFallbackInterval: time.Minute,
@@ -86,107 +88,107 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Name:        "source-url",
 			Usage:       "source imap url",
 			EnvVars:     []string{"MAILPUMP_SOURCE_URL"},
-			Destination: &cfg.SourceURL,
+			Destination: &cfg.Source.URL,
 			Required:    true,
-			Value:       def.SourceURL,
+			Value:       def.Source.URL,
 		},
 		&cli.StringFlag{
 			Name:        "source-username",
 			Usage:       "destination imap username",
 			EnvVars:     []string{"MAILPUMP_SOURCE_USERNAME"},
-			Destination: &cfg.SourceUsername,
+			Destination: &cfg.Source.Username,
 			Required:    true,
-			Value:       def.SourceUsername,
+			Value:       def.Source.Username,
 		},
 		&cli.StringFlag{
 			Name:        "source-password",
 			Usage:       "source imap password",
 			EnvVars:     []string{"MAILPUMP_SOURCE_PASSWORD"},
-			Destination: &cfg.SourcePassword,
+			Destination: &cfg.Source.Password,
 			Required:    false,
-			Value:       def.SourcePassword,
+			Value:       def.Source.Password,
 		},
 		&cli.StringFlag{
 			Name:        "source-password-file",
 			Usage:       "source imap password file",
 			EnvVars:     []string{"MAILPUMP_SOURCE_PASSWORD_FILE"},
-			Destination: &cfg.SourcePasswordFile,
+			Destination: &cfg.Source.PasswordFile,
 			Required:    false,
-			Value:       def.SourcePasswordFile,
+			Value:       def.Source.PasswordFile,
 		},
 		&cli.BoolFlag{
 			Name:        "source-tls-skip-verify",
 			Usage:       "skip source tls verification",
 			EnvVars:     []string{"MAILPUMP_SOURCE_TLS_SKIP_VERIFY"},
-			Destination: &cfg.SourceTLSSkipVerify,
-			Value:       def.SourceTLSSkipVerify,
+			Destination: &cfg.Source.TLSSkipVerify,
+			Value:       def.Source.TLSSkipVerify,
 		},
 		&cli.StringFlag{
 			Name:        "source-transport",
 			Usage:       "source imap transport (persistent, standard)",
 			EnvVars:     []string{"MAILPUMP_SOURCE_TRANSPORT"},
-			Destination: &cfg.SourceTransport,
-			Value:       def.SourceTransport,
+			Destination: &cfg.Source.Transport,
+			Value:       def.Source.Transport,
 		},
 		&cli.BoolFlag{
 			Name:        "source-debug",
 			Usage:       "display source debug info",
 			EnvVars:     []string{"MAILPUMP_SOURCE_DEBUG"},
-			Destination: &cfg.SourceDebug,
-			Value:       def.SourceDebug,
+			Destination: &cfg.Source.Debug,
+			Value:       def.Source.Debug,
 		},
 		&cli.StringFlag{
 			Name:        "dest-url",
 			Usage:       "destination imap url",
 			EnvVars:     []string{"MAILPUMP_DEST_URL"},
-			Destination: &cfg.DestURL,
+			Destination: &cfg.Dest.URL,
 			Required:    true,
-			Value:       def.DestURL,
+			Value:       def.Dest.URL,
 		},
 		&cli.StringFlag{
 			Name:        "dest-username",
 			Usage:       "destination imap username",
 			EnvVars:     []string{"MAILPUMP_DEST_USERNAME"},
-			Destination: &cfg.DestUsername,
+			Destination: &cfg.Dest.Username,
 			Required:    true,
-			Value:       def.DestUsername,
+			Value:       def.Dest.Username,
 		},
 		&cli.StringFlag{
 			Name:        "dest-password",
 			Usage:       "destination imap password",
 			EnvVars:     []string{"MAILPUMP_DEST_PASSWORD"},
-			Destination: &cfg.DestPassword,
+			Destination: &cfg.Dest.Password,
 			Required:    false,
-			Value:       def.DestPassword,
+			Value:       def.Dest.Password,
 		},
 		&cli.StringFlag{
 			Name:        "dest-password-file",
 			Usage:       "destination imap password file",
 			EnvVars:     []string{"MAILPUMP_DEST_PASSWORD_FILE"},
-			Destination: &cfg.DestPasswordFile,
+			Destination: &cfg.Dest.PasswordFile,
 			Required:    false,
-			Value:       def.DestPasswordFile,
+			Value:       def.Dest.PasswordFile,
 		},
 		&cli.BoolFlag{
 			Name:        "dest-tls-skip-verify",
 			Usage:       "skip destination tls Verification",
 			EnvVars:     []string{"MAILPUMP_DEST_TLS_SKIP_VERIFY"},
-			Destination: &cfg.DestTLSSkipVerify,
-			Value:       def.DestTLSSkipVerify,
+			Destination: &cfg.Dest.TLSSkipVerify,
+			Value:       def.Dest.TLSSkipVerify,
 		},
 		&cli.StringFlag{
 			Name:        "dest-transport",
 			Usage:       "destination imap transport (persistent, standard)",
 			EnvVars:     []string{"MAILPUMP_DEST_TRANSPORT"},
-			Destination: &cfg.DestTransport,
-			Value:       def.DestTransport,
+			Destination: &cfg.Dest.Transport,
+			Value:       def.Dest.Transport,
 		},
 		&cli.BoolFlag{
 			Name:        "dest-debug",
 			Usage:       "display destination debug info",
 			EnvVars:     []string{"MAILPUMP_DEST_DEBUG"},
-			Destination: &cfg.DestDebug,
-			Value:       def.DestDebug,
+			Destination: &cfg.Dest.Debug,
+			Value:       def.Dest.Debug,
 		},
 		&cli.StringFlag{
 			Name:        "log-level",
@@ -269,8 +271,8 @@ func extractUrl(u *url.URL) (string, string, bool, error) {
 	return net.JoinHostPort(host, port), strings.TrimPrefix(u.Path, "/"), useTLS, nil
 }
 
-func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, transURL string, prefix string) error {
-	sourceURL, err := url.Parse(transURL)
+func (cfg *CliIMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, prefix string) error {
+	sourceURL, err := url.Parse(cfg.URL)
 	if err != nil {
 		return err
 	}
@@ -281,12 +283,12 @@ func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, tr
 	}
 
 	transConfig.HostPort = hostPort
-	transConfig.Username = cfg.SourceUsername
+	transConfig.Username = cfg.Username
 
-	if cfg.SourcePassword != "" {
-		transConfig.Password = cfg.SourcePassword
-	} else if cfg.SourcePasswordFile != "" {
-		pass, err := ioutil.ReadFile(cfg.SourcePasswordFile)
+	if cfg.Password != "" {
+		transConfig.Password = cfg.Password
+	} else if cfg.PasswordFile != "" {
+		pass, err := ioutil.ReadFile(cfg.PasswordFile)
 		if err != nil {
 			return err
 		}
@@ -299,12 +301,12 @@ func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, tr
 	transConfig.Mailbox = mailbox
 	transConfig.TLS = wantTLS
 	transConfig.TLSConfig = nil
-	if cfg.SourceTLSSkipVerify {
+	if cfg.TLSSkipVerify {
 		// #nosec G402
 		transConfig.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	if cfg.SourceTransport != "persistent" {
+	if cfg.Transport != "persistent" {
 		transConfig.Factory = &client.Factory{}
 	} else {
 		transConfig.Factory = &persistentclient.Factory{
@@ -313,18 +315,18 @@ func (cfg *CliConfig) buildTransportConfig(transConfig *pump.TransportConfig, tr
 		}
 	}
 
-	transConfig.Debug = cfg.SourceDebug
+	transConfig.Debug = cfg.Debug
 	return nil
 }
 
 func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	def := DefaultConfig()
 
-	if err := cfg.buildTransportConfig(&pumpConfig.Source, cfg.SourceURL, "source"); err != nil {
+	if err := cfg.Source.buildTransportConfig(&pumpConfig.Source, "source"); err != nil {
 		return err
 	}
 
-	if err := cfg.buildTransportConfig(&pumpConfig.Dest, cfg.DestURL, "dest"); err != nil {
+	if err := cfg.Dest.buildTransportConfig(&pumpConfig.Dest, "dest"); err != nil {
 		return err
 	}
 

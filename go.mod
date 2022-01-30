@@ -10,4 +10,8 @@ require (
 	github.com/urfave/cli/v2 v2.3.0
 )
 
-require github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+require (
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac // indirect
+	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
+)

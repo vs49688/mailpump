@@ -60,6 +60,7 @@ func runPump(cfg *config.CliConfig) error {
 
 	log.WithFields(log.Fields{
 		"source_url":             cfg.Source.URL,
+		"source_auth_method":     cfg.Source.AuthMethod,
 		"source_username":        cfg.Source.Username,
 		"source_password_file":   cfg.Source.PasswordFile,
 		"source_tls_skip_verify": cfg.Source.TLSSkipVerify,
@@ -67,6 +68,7 @@ func runPump(cfg *config.CliConfig) error {
 		"source_debug":           cfg.Source.Debug,
 		"dest_url":               cfg.Dest.URL,
 		"dest_username":          cfg.Dest.Username,
+		"dest_auth_method":       cfg.Dest.AuthMethod,
 		"dest_password_file":     cfg.Dest.PasswordFile,
 		"dest_tls_skip_verify":   cfg.Dest.TLSSkipVerify,
 		"dest_transport":         cfg.Dest.Transport,

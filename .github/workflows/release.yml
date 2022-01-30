@@ -9,12 +9,14 @@ jobs:
       matrix:
         stage:
           - fmt
-          - vet
+          - generate
           - goimports
-          - gosec
-          - race
-          - vendor
           - tidy
+          - vendor
+          - gosec
+          - build
+          - vet
+          - race
           - test
     steps:
       - uses: actions/checkout@v2

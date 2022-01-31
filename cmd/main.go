@@ -23,13 +23,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/vs49688/mailpump/cmd/config"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"github.com/vs49688/mailpump/pump"
 )
 
 func Main() {
-	cfg := &CliConfig{}
+	cfg := &config.CliConfig{}
 	app := cli.App{
 		Name:  "mailpump",
 		Usage: os.Args[0],
@@ -46,7 +48,7 @@ to another mailbox on a different server, deleting the originals.
 	}
 }
 
-func runPump(cfg *CliConfig) error {
+func runPump(cfg *config.CliConfig) error {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err == nil {
 		log.SetLevel(logLevel)

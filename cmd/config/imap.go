@@ -41,6 +41,7 @@ func DefaultIMAPConfig() IMAPConfig {
 		TLSSkipVerify: false,
 		Transport:     "persistent",
 		Debug:         false,
+		OAuth2Prov:    "custom",
 	}
 }
 
@@ -110,6 +111,42 @@ func (cfg *IMAPConfig) makeIMAPParameters(lowerPrefix string) []cli.Flag {
 			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_DEBUG", upperPrefix)},
 			Destination: &cfg.Debug,
 			Value:       def.Debug,
+		},
+
+		// OAuth2 flags
+		&cli.StringFlag{
+			Name:        fmt.Sprintf("%v-oauth2-provider", lowerPrefix),
+			Usage:       fmt.Sprintf("%v oauth2 provider", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH2_PROVIDER", upperPrefix)},
+			Destination: &cfg.OAuth2Prov,
+			Value:       def.OAuth2Prov,
+		},
+		&cli.StringFlag{
+			Name:        fmt.Sprintf("%v-oauth2-client-id", lowerPrefix),
+			Usage:       fmt.Sprintf("%v-oauth2 client id", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH_CLIENT_ID", upperPrefix)},
+			Destination: &cfg.OAuth2Config.ClientID,
+			Value:       def.OAuth2Config.ClientID,
+		},
+		&cli.StringFlag{
+			Name:        fmt.Sprintf("%v-oauth2-client-secret", lowerPrefix),
+			Usage:       fmt.Sprintf("%v-oauth2 client secret", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH_CLIENT_SECRET", upperPrefix)},
+			Destination: &cfg.OAuth2Config.ClientSecret,
+			Value:       def.OAuth2Config.ClientSecret,
+		},
+		&cli.StringFlag{
+			Name:        fmt.Sprintf("%v-oauth2-token-url", lowerPrefix),
+			Usage:       fmt.Sprintf("%v oauth2 token url", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH2_TOKEN_URL", upperPrefix)},
+			Destination: &cfg.OAuth2Config.Endpoint.TokenURL,
+			Value:       def.OAuth2Config.Endpoint.TokenURL,
+		},
+		&cli.StringSliceFlag{
+			Name:        fmt.Sprintf("%v-oauth2-scopes", lowerPrefix),
+			Usage:       fmt.Sprintf("%v oauth2 scopes", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH2_SCOPES", upperPrefix)},
+			Destination: &cfg.OAuth2Scopes,
 		},
 	}
 }

@@ -21,6 +21,9 @@ package config
 import (
 	"errors"
 	"time"
+
+	"github.com/urfave/cli/v2"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -36,6 +39,9 @@ type IMAPConfig struct {
 	TLSSkipVerify bool   `json:"tls_skip_verify"`
 	Transport     string `json:"transport"`
 	Debug         bool   `json:"debug"`
+	OAuth2Prov    string          `json:"oauth2_provider"`
+	OAuth2Scopes  cli.StringSlice `json:"-"`
+	OAuth2Config  oauth2.Config   `json:"-"`
 }
 
 type CliConfig struct {

@@ -30,8 +30,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 	updateChannel := make(chan client2.Update, 10)
 	c, err := factory.NewClient(&imap2.ClientConfig{
 		HostPort:  cfg.HostPort,
-		Username:  cfg.Username,
-		Password:  cfg.Password,
+		Auth:      cfg.Auth,
 		TLS:       cfg.TLS,
 		TLSConfig: cfg.TLSConfig,
 		Debug:     cfg.Debug,

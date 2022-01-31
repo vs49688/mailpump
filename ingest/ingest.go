@@ -35,8 +35,7 @@ func NewClient(cfg *Config, factory imap2.ClientFactory) (*Client, error) {
 
 	imapClient, err := factory.NewClient(&imap2.ClientConfig{
 		HostPort:  cfg.HostPort,
-		Username:  cfg.Username,
-		Password:  cfg.Password,
+		Auth:      cfg.Auth,
 		TLS:       cfg.TLS,
 		TLSConfig: cfg.TLSConfig,
 		Debug:     cfg.Debug,

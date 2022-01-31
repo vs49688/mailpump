@@ -27,6 +27,8 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
+
+	"github.com/vs49688/mailpump/imap"
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/pump"
@@ -147,20 +149,24 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 	}
 
 	transConfig.HostPort = hostPort
-	transConfig.Username = cfg.Username
+
+	username := cfg.Username
+	var password string
 
 	if cfg.Password != "" {
-		transConfig.Password = cfg.Password
+		password = cfg.Password
 	} else if cfg.PasswordFile != "" {
 		pass, err := ioutil.ReadFile(cfg.PasswordFile)
 		if err != nil {
 			return err
 		}
 
-		transConfig.Password = strings.TrimSpace(string(pass))
+		password = strings.TrimSpace(string(pass))
 	} else {
 		return fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
 	}
+
+	transConfig.Auth = imap.NewNormalAuthenticator(username, password)
 
 	transConfig.Mailbox = mailbox
 	transConfig.TLS = wantTLS

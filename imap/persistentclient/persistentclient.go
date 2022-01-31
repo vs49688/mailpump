@@ -198,8 +198,7 @@ func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
 	f := &client.Factory{}
 	c, err := f.NewClient(&imap.ClientConfig{
 		HostPort:  cfg.HostPort,
-		Username:  cfg.Username,
-		Password:  cfg.Password,
+		Auth:      cfg.Auth,
 		TLS:       cfg.TLS,
 		TLSConfig: cfg.TLSConfig,
 		Debug:     cfg.Debug,

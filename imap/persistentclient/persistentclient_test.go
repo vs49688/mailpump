@@ -15,8 +15,7 @@ func TestIdleCancellation(t *testing.T) {
 
 	c, err := f.NewClient(&imap.ClientConfig{
 		HostPort:  "0.0.0.0:993",
-		Username:  "username",
-		Password:  "password",
+		Auth:      imap.NewNormalAuthenticator("username", "password"),
 		TLS:       false,
 		TLSConfig: nil,
 		Debug:     false,
@@ -40,8 +39,7 @@ func TestIdleAfterLogout(t *testing.T) {
 
 	c, err := f.NewClient(&imap.ClientConfig{
 		HostPort:  "0.0.0.0:993",
-		Username:  "username",
-		Password:  "password",
+		Auth:      imap.NewNormalAuthenticator("username", "password"),
 		TLS:       false,
 		TLSConfig: nil,
 		Debug:     false,

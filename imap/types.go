@@ -56,8 +56,7 @@ type Authenticator interface {
 
 type ClientConfig struct {
 	HostPort  string
-	Username  string
-	Password  string
+	Auth      Authenticator
 	TLS       bool
 	TLSConfig *tls.Config
 	Debug     bool

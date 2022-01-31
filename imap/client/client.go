@@ -54,7 +54,7 @@ func (f *Factory) NewClient(cfg *imap.ClientConfig) (imap.Client, error) {
 		c.SetDebug(os.Stderr)
 	}
 
-	if err := c.Login(cfg.Username, cfg.Password); err != nil {
+	if err := cfg.Auth.Authenticate(c); err != nil {
 		return nil, err
 	}
 

@@ -30,8 +30,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 
 	recv, err := receiver.NewReceiver(&receiver.Config{
 		HostPort:             cfg.Source.HostPort,
-		Username:             cfg.Source.Username,
-		Password:             cfg.Source.Password,
+		Auth:                 cfg.Source.Auth,
 		Mailbox:              cfg.Source.Mailbox,
 		TLS:                  cfg.Source.TLS,
 		TLSConfig:            cfg.Source.TLSConfig,
@@ -50,8 +49,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 
 	ing, err := ingest.NewClient(&ingest.Config{
 		HostPort:  cfg.Dest.HostPort,
-		Username:  cfg.Dest.Username,
-		Password:  cfg.Dest.Password,
+		Auth:      cfg.Dest.Auth,
 		Mailbox:   cfg.Dest.Mailbox,
 		TLS:       cfg.Dest.TLS,
 		TLSConfig: cfg.Dest.TLSConfig,

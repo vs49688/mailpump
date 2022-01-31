@@ -26,6 +26,8 @@ import (
 	"testing"
 	"time"
 
+	imap2 "github.com/vs49688/mailpump/imap"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
@@ -107,8 +109,7 @@ func TestReceiver(t *testing.T) {
 	ingCh := make(chan error)
 	ing, err := ingest.NewClient(&ingest.Config{
 		HostPort:  addr,
-		Username:  "username",
-		Password:  "password",
+		Auth:      imap2.NewNormalAuthenticator("username", "password"),
 		Mailbox:   "INBOX",
 		TLS:       false,
 		TLSConfig: &tls.Config{InsecureSkipVerify: true},
@@ -125,8 +126,7 @@ func TestReceiver(t *testing.T) {
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
 		HostPort:             addr,
-		Username:             "username",
-		Password:             "password",
+		Auth:                 imap2.NewNormalAuthenticator("username", "password"),
 		Mailbox:              "INBOX",
 		TLS:                  false,
 		TLSConfig:            &tls.Config{InsecureSkipVerify: true},
@@ -171,8 +171,7 @@ func TestLogoutWhenDisconnected(t *testing.T) {
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
 		HostPort:             "0.0.0.0:993",
-		Username:             "username",
-		Password:             "password",
+		Auth:                 imap2.NewNormalAuthenticator("username", "password"),
 		Mailbox:              "INBOX",
 		TLS:                  false,
 		TLSConfig:            nil,
@@ -199,8 +198,7 @@ func TestImmediateLogout(t *testing.T) {
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
 		HostPort:             addr,
-		Username:             "username",
-		Password:             "password",
+		Auth:                 imap2.NewNormalAuthenticator("username", "password"),
 		Mailbox:              "INBOX",
 		TLS:                  false,
 		TLSConfig:            nil,

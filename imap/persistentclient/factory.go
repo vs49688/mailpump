@@ -23,8 +23,7 @@ import "github.com/vs49688/mailpump/imap"
 func (f *Factory) NewClient(cfg *imap.ClientConfig) (imap.Client, error) {
 	c, err := NewClient(&Config{
 		HostPort:  cfg.HostPort,
-		Username:  cfg.Username,
-		Password:  cfg.Password,
+		Auth:      cfg.Auth,
 		Mailbox:   f.Mailbox,
 		TLS:       cfg.TLS,
 		TLSConfig: cfg.TLSConfig,

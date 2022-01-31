@@ -24,6 +24,8 @@ import (
 	"strings"
 	"testing"
 
+	imap2 "github.com/vs49688/mailpump/imap"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
@@ -115,8 +117,7 @@ func TestIngestStandard(t *testing.T) {
 	runIngestTest(t, func(addr string) (*Client, error) {
 		return NewClient(&Config{
 			HostPort:  addr,
-			Username:  "username",
-			Password:  "password",
+			Auth:      imap2.NewNormalAuthenticator("username", "password"),
 			Mailbox:   "INBOX",
 			TLS:       false,
 			TLSConfig: nil,
@@ -129,8 +130,7 @@ func TestIngestPersistent(t *testing.T) {
 	runIngestTest(t, func(addr string) (*Client, error) {
 		return NewClient(&Config{
 			HostPort:  addr,
-			Username:  "username",
-			Password:  "password",
+			Auth:      imap2.NewNormalAuthenticator("username", "password"),
 			Mailbox:   "INBOX",
 			TLS:       false,
 			TLSConfig: nil,

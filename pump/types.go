@@ -29,8 +29,7 @@ import (
 
 type TransportConfig struct {
 	HostPort  string
-	Username  string
-	Password  string
+	Auth      imap.Authenticator
 	Mailbox   string
 	TLS       bool
 	TLSConfig *tls.Config

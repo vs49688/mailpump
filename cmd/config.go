@@ -58,18 +58,18 @@ type CliConfig struct {
 	FetchMaxInterval     time.Duration `json:"fetch_max_interval"`
 }
 
+func defaultIMAPConfig() CliIMAPConfig {
+	return CliIMAPConfig{
+		TLSSkipVerify: false,
+		Transport:     "persistent",
+		Debug:         false,
+	}
+}
+
 func DefaultConfig() CliConfig {
 	return CliConfig{
-		Source: CliIMAPConfig{
-			TLSSkipVerify: false,
-			Transport:     "persistent",
-			Debug:         false,
-		},
-		Dest: CliIMAPConfig{
-			TLSSkipVerify: false,
-			Transport:     "persistent",
-			Debug:         false,
-		},
+		Source:               defaultIMAPConfig(),
+		Dest:                 defaultIMAPConfig(),
 		LogLevel:             "info",
 		LogFormat:            "text",
 		IDLEFallbackInterval: time.Minute,
@@ -80,116 +80,74 @@ func DefaultConfig() CliConfig {
 	}
 }
 
-func (cfg *CliConfig) Parameters() []cli.Flag {
-	def := DefaultConfig()
+func (cfg *CliIMAPConfig) makeIMAPParameters(lowerPrefix string) []cli.Flag {
+	def := defaultIMAPConfig()
+	upperPrefix := strings.ToUpper(lowerPrefix)
 
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:        "source-url",
-			Usage:       "source imap url",
-			EnvVars:     []string{"MAILPUMP_SOURCE_URL"},
-			Destination: &cfg.Source.URL,
+			Name:        fmt.Sprintf("%v-url", lowerPrefix),
+			Usage:       fmt.Sprintf("%v imap url", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_URL", upperPrefix)},
+			Destination: &cfg.URL,
 			Required:    true,
-			Value:       def.Source.URL,
+			Value:       def.URL,
 		},
 		&cli.StringFlag{
-			Name:        "source-username",
-			Usage:       "destination imap username",
-			EnvVars:     []string{"MAILPUMP_SOURCE_USERNAME"},
-			Destination: &cfg.Source.Username,
+			Name:        fmt.Sprintf("%v-username", lowerPrefix),
+			Usage:       fmt.Sprintf("%v imap username", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_USERNAME", upperPrefix)},
+			Destination: &cfg.Username,
 			Required:    true,
-			Value:       def.Source.Username,
+			Value:       def.Username,
 		},
 		&cli.StringFlag{
-			Name:        "source-password",
-			Usage:       "source imap password",
-			EnvVars:     []string{"MAILPUMP_SOURCE_PASSWORD"},
-			Destination: &cfg.Source.Password,
+			Name:        fmt.Sprintf("%v-password", lowerPrefix),
+			Usage:       fmt.Sprintf("%v imap password", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_PASSWORD", upperPrefix)},
+			Destination: &cfg.Password,
 			Required:    false,
-			Value:       def.Source.Password,
+			Value:       def.Password,
 		},
 		&cli.StringFlag{
-			Name:        "source-password-file",
-			Usage:       "source imap password file",
-			EnvVars:     []string{"MAILPUMP_SOURCE_PASSWORD_FILE"},
-			Destination: &cfg.Source.PasswordFile,
+			Name:        fmt.Sprintf("%v-password-file", lowerPrefix),
+			Usage:       fmt.Sprintf("%v imap password file", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_PASSWORD_FILE", upperPrefix)},
+			Destination: &cfg.PasswordFile,
 			Required:    false,
-			Value:       def.Source.PasswordFile,
+			Value:       def.PasswordFile,
 		},
 		&cli.BoolFlag{
-			Name:        "source-tls-skip-verify",
-			Usage:       "skip source tls verification",
-			EnvVars:     []string{"MAILPUMP_SOURCE_TLS_SKIP_VERIFY"},
-			Destination: &cfg.Source.TLSSkipVerify,
-			Value:       def.Source.TLSSkipVerify,
+			Name:        fmt.Sprintf("%v-tls-skip-verify", lowerPrefix),
+			Usage:       fmt.Sprintf("skip %v tls verification", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_TLS_SKIP_VERIFY", upperPrefix)},
+			Destination: &cfg.TLSSkipVerify,
+			Value:       def.TLSSkipVerify,
 		},
 		&cli.StringFlag{
-			Name:        "source-transport",
-			Usage:       "source imap transport (persistent, standard)",
-			EnvVars:     []string{"MAILPUMP_SOURCE_TRANSPORT"},
-			Destination: &cfg.Source.Transport,
-			Value:       def.Source.Transport,
+			Name:        fmt.Sprintf("%v-transport", lowerPrefix),
+			Usage:       fmt.Sprintf("%v imap transport (persistent, standard)", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_TRANSPORT", upperPrefix)},
+			Destination: &cfg.Transport,
+			Value:       def.Transport,
 		},
 		&cli.BoolFlag{
-			Name:        "source-debug",
-			Usage:       "display source debug info",
-			EnvVars:     []string{"MAILPUMP_SOURCE_DEBUG"},
-			Destination: &cfg.Source.Debug,
-			Value:       def.Source.Debug,
+			Name:        fmt.Sprintf("%v-debug", lowerPrefix),
+			Usage:       fmt.Sprintf("display %v debug info", lowerPrefix),
+			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_DEBUG", upperPrefix)},
+			Destination: &cfg.Debug,
+			Value:       def.Debug,
 		},
-		&cli.StringFlag{
-			Name:        "dest-url",
-			Usage:       "destination imap url",
-			EnvVars:     []string{"MAILPUMP_DEST_URL"},
-			Destination: &cfg.Dest.URL,
-			Required:    true,
-			Value:       def.Dest.URL,
-		},
-		&cli.StringFlag{
-			Name:        "dest-username",
-			Usage:       "destination imap username",
-			EnvVars:     []string{"MAILPUMP_DEST_USERNAME"},
-			Destination: &cfg.Dest.Username,
-			Required:    true,
-			Value:       def.Dest.Username,
-		},
-		&cli.StringFlag{
-			Name:        "dest-password",
-			Usage:       "destination imap password",
-			EnvVars:     []string{"MAILPUMP_DEST_PASSWORD"},
-			Destination: &cfg.Dest.Password,
-			Required:    false,
-			Value:       def.Dest.Password,
-		},
-		&cli.StringFlag{
-			Name:        "dest-password-file",
-			Usage:       "destination imap password file",
-			EnvVars:     []string{"MAILPUMP_DEST_PASSWORD_FILE"},
-			Destination: &cfg.Dest.PasswordFile,
-			Required:    false,
-			Value:       def.Dest.PasswordFile,
-		},
-		&cli.BoolFlag{
-			Name:        "dest-tls-skip-verify",
-			Usage:       "skip destination tls Verification",
-			EnvVars:     []string{"MAILPUMP_DEST_TLS_SKIP_VERIFY"},
-			Destination: &cfg.Dest.TLSSkipVerify,
-			Value:       def.Dest.TLSSkipVerify,
-		},
-		&cli.StringFlag{
-			Name:        "dest-transport",
-			Usage:       "destination imap transport (persistent, standard)",
-			EnvVars:     []string{"MAILPUMP_DEST_TRANSPORT"},
-			Destination: &cfg.Dest.Transport,
-			Value:       def.Dest.Transport,
-		},
-		&cli.BoolFlag{
-			Name:        "dest-debug",
-			Usage:       "display destination debug info",
-			EnvVars:     []string{"MAILPUMP_DEST_DEBUG"},
-			Destination: &cfg.Dest.Debug,
-			Value:       def.Dest.Debug,
-		},
+	}
+}
+
+func (cfg *CliConfig) Parameters() []cli.Flag {
+	def := DefaultConfig()
+
+	var flags []cli.Flag
+	flags = append(flags, cfg.Source.makeIMAPParameters("source")...)
+	flags = append(flags, cfg.Dest.makeIMAPParameters("dest")...)
+	flags = append(flags, []cli.Flag{
 		&cli.StringFlag{
 			Name:        "log-level",
 			Usage:       "logging level",
@@ -240,7 +198,9 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 			Destination: &cfg.FetchMaxInterval,
 			Value:       def.FetchMaxInterval,
 		},
-	}
+	}...)
+
+	return flags
 }
 
 var (

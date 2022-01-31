@@ -19,7 +19,9 @@
 package config
 
 import (
+	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -33,6 +35,7 @@ import (
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/pump"
+	"golang.org/x/oauth2"
 )
 
 func DefaultIMAPConfig() IMAPConfig {
@@ -228,6 +231,28 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 			return err
 		}
 		transConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
+	case sasl.OAuthBearer:
+		switch cfg.OAuth2Prov {
+		// TODO: Add other providers
+		case "custom":
+			cfg.OAuth2Config.Scopes = cfg.OAuth2Scopes.Value()
+		default:
+			return fmt.Errorf("unknown oauth2 provider: %v", cfg.OAuth2Prov)
+		}
+
+		user, pass, err := cfg.validateUserPass(prefix)
+		if err != nil {
+			return err
+		}
+
+		// Validate the token
+		tok := &oauth2.Token{}
+		if err := json.Unmarshal([]byte(pass), &tok); err != nil {
+			return err
+		}
+
+		ctx := context.Background() // FIXME: use parent context
+		transConfig.Auth = imap.NewOAuthBearerAuthenticator(user, cfg.OAuth2Config.TokenSource(ctx, tok))
 	default:
 		return fmt.Errorf("unsupported auth method: %v", cfg.AuthMethod)
 

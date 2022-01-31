@@ -233,9 +233,10 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 		transConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
 	case sasl.OAuthBearer:
 		switch cfg.OAuth2Prov {
-		// TODO: Add other providers
 		case "custom":
 			cfg.OAuth2Config.Scopes = cfg.OAuth2Scopes.Value()
+		case "google":
+			cfg.OAuth2Config = oauthProviderGoogle
 		default:
 			return fmt.Errorf("unknown oauth2 provider: %v", cfg.OAuth2Prov)
 		}

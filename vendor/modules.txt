@@ -45,6 +45,7 @@ golang.org/x/net/context/ctxhttp
 # golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 ## explicit
 golang.org/x/oauth2
+golang.org/x/oauth2/endpoints
 golang.org/x/oauth2/internal
 # golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27
 ## explicit

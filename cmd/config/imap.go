@@ -237,24 +237,6 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 
 	}
 
-	username := cfg.Username
-	var password string
-
-	if cfg.Password != "" {
-		password = cfg.Password
-	} else if cfg.PasswordFile != "" {
-		pass, err := ioutil.ReadFile(cfg.PasswordFile)
-		if err != nil {
-			return err
-		}
-
-		password = strings.TrimSpace(string(pass))
-	} else {
-		return fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
-	}
-
-	transConfig.Auth = imap.NewNormalAuthenticator(username, password)
-
 	transConfig.Mailbox = mailbox
 	transConfig.TLS = wantTLS
 	transConfig.TLSConfig = nil

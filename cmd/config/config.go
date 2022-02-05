@@ -19,11 +19,26 @@
 package config
 
 import (
+	"strings"
 	"time"
 
 	"github.com/urfave/cli/v2"
 	"github.com/vs49688/mailpump/pump"
 )
+
+func makeFlagNames(name string, prefix string) (string, string, []string) {
+	name = strings.ToLower(name)
+	prefix = strings.ToLower(prefix)
+
+	desc := strings.ReplaceAll(name, "-", " ")
+	env := strings.ToUpper(strings.ReplaceAll(name, "-", "_"))
+
+	if prefix == "" {
+		return name, desc, []string{"MAILPUMP_" + env}
+	}
+
+	return prefix + "-" + name, prefix + " " + desc, []string{"MAILPUMP_" + strings.ToUpper(prefix) + "_" + env}
+}
 
 func DefaultConfig() CliConfig {
 	return CliConfig{
@@ -41,62 +56,77 @@ func DefaultConfig() CliConfig {
 
 func (cfg *CliConfig) Parameters() []cli.Flag {
 	def := DefaultConfig()
-
+	var name string
+	var usage string
+	var envs []string
 	var flags []cli.Flag
+
 	flags = append(flags, cfg.Source.makeIMAPParameters("source")...)
 	flags = append(flags, cfg.Dest.makeIMAPParameters("dest")...)
-	flags = append(flags, []cli.Flag{
-		&cli.StringFlag{
-			Name:        "log-level",
-			Usage:       "logging level",
-			EnvVars:     []string{"MAILPUMP_LOG_LEVEL"},
-			Destination: &cfg.LogLevel,
-			Value:       def.LogLevel,
-		},
-		&cli.StringFlag{
-			Name:        "log-format",
-			Usage:       "logging format (text/json)",
-			EnvVars:     []string{"MAILPUMP_LOG_FORMAT"},
-			Destination: &cfg.LogFormat,
-			Value:       def.LogFormat,
-		},
-		&cli.DurationFlag{
-			Name:        "idle-fallback-interval",
-			Usage:       "fallback poll interval for servers that don't support IDLE",
-			EnvVars:     []string{"MAILPUMP_IDLE_FALLBACK_INTERVAL"},
-			Destination: &cfg.IDLEFallbackInterval,
-			Value:       def.IDLEFallbackInterval,
-		},
-		&cli.UintFlag{
-			Name:        "batch-size",
-			Usage:       "deletion batch size",
-			EnvVars:     []string{"MAILPUMP_BATCH_SIZE"},
-			Destination: &cfg.BatchSize,
-			Value:       def.BatchSize,
-		},
-		&cli.BoolFlag{
-			Name:        "disable-deletions",
-			Usage:       "disable deletions. for debugging only",
-			EnvVars:     []string{"MAILPUMP_DISABLE_DELETIONS"},
-			Destination: &cfg.DisableDeletions,
-			Value:       def.DisableDeletions,
-			Hidden:      true,
-		},
-		&cli.UintFlag{
-			Name:        "fetch-buffer-size",
-			Usage:       "fetch buffer size",
-			EnvVars:     []string{"MAILPUMP_FETCH_BUFFER_SIZE"},
-			Destination: &cfg.FetchBufferSize,
-			Value:       def.FetchBufferSize,
-		},
-		&cli.DurationFlag{
-			Name:        "fetch-max-interval",
-			Usage:       "maximum interval between fetches. can abort IDLE",
-			EnvVars:     []string{"MAILPUMP_FETCH_MAX_INTERVAL"},
-			Destination: &cfg.FetchMaxInterval,
-			Value:       def.FetchMaxInterval,
-		},
-	}...)
+
+	name, usage, envs = makeFlagNames("log-level", "")
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.LogLevel,
+		Value:       def.LogLevel,
+	})
+
+	name, _, envs = makeFlagNames("log-format", "")
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       "log format (text/json)",
+		EnvVars:     envs,
+		Destination: &cfg.LogFormat,
+		Value:       def.LogFormat,
+	})
+
+	name, _, envs = makeFlagNames("idle-fallback-interval", "")
+	flags = append(flags, &cli.DurationFlag{
+		Name:        name,
+		Usage:       "fallback poll interval for servers that don't support IDLE",
+		EnvVars:     envs,
+		Destination: &cfg.IDLEFallbackInterval,
+		Value:       def.IDLEFallbackInterval,
+	})
+
+	name, _, envs = makeFlagNames("batch-size", "")
+	flags = append(flags, &cli.UintFlag{
+		Name:        name,
+		Usage:       "deletion batch size",
+		EnvVars:     envs,
+		Destination: &cfg.BatchSize,
+		Value:       def.BatchSize,
+	})
+
+	name, _, envs = makeFlagNames("disable-deletions", "")
+	flags = append(flags, &cli.BoolFlag{
+		Name:        name,
+		Usage:       "disable deletions. for debugging only",
+		EnvVars:     envs,
+		Destination: &cfg.DisableDeletions,
+		Value:       def.DisableDeletions,
+		Hidden:      true,
+	})
+
+	name, usage, envs = makeFlagNames("fetch-buffer-size", "")
+	flags = append(flags, &cli.UintFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.FetchBufferSize,
+		Value:       def.FetchBufferSize,
+	})
+
+	name, _, envs = makeFlagNames("fetch-max-interval", "")
+	flags = append(flags, &cli.DurationFlag{
+		Name:        name,
+		Usage:       "maximum interval between fetches. can abort IDLE",
+		EnvVars:     envs,
+		Destination: &cfg.FetchMaxInterval,
+		Value:       def.FetchMaxInterval,
+	})
 
 	return flags
 }

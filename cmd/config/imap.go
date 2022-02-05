@@ -48,110 +48,136 @@ func DefaultIMAPConfig() IMAPConfig {
 	}
 }
 
-func (cfg *IMAPConfig) makeIMAPParameters(lowerPrefix string) []cli.Flag {
+func (cfg *IMAPConfig) makeIMAPParameters(prefix string) []cli.Flag {
 	def := DefaultIMAPConfig()
-	upperPrefix := strings.ToUpper(lowerPrefix)
+	var name string
+	var usage string
+	var envs []string
+	var flags []cli.Flag
 
-	return []cli.Flag{
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-url", lowerPrefix),
-			Usage:       fmt.Sprintf("%v imap url", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_URL", upperPrefix)},
-			Destination: &cfg.URL,
-			Required:    true,
-			Value:       def.URL,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-auth-method", lowerPrefix),
-			Usage:       fmt.Sprintf("%v auth method", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_AUTH_METHOD", upperPrefix)},
-			Destination: &cfg.AuthMethod,
-			Required:    false,
-			Value:       def.AuthMethod,
-		},
+	name, usage, envs = makeFlagNames("url", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.URL,
+		Required:    true,
+		Value:       def.URL,
+	})
 
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-username", lowerPrefix),
-			Usage:       fmt.Sprintf("%v imap username", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_USERNAME", upperPrefix)},
-			Destination: &cfg.Username,
-			Required:    true,
-			Value:       def.Username,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-password", lowerPrefix),
-			Usage:       fmt.Sprintf("%v imap password", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_PASSWORD", upperPrefix)},
-			Destination: &cfg.Password,
-			Required:    false,
-			Value:       def.Password,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-password-file", lowerPrefix),
-			Usage:       fmt.Sprintf("%v imap password file", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_PASSWORD_FILE", upperPrefix)},
-			Destination: &cfg.PasswordFile,
-			Required:    false,
-			Value:       def.PasswordFile,
-		},
-		&cli.BoolFlag{
-			Name:        fmt.Sprintf("%v-tls-skip-verify", lowerPrefix),
-			Usage:       fmt.Sprintf("skip %v tls verification", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_TLS_SKIP_VERIFY", upperPrefix)},
-			Destination: &cfg.TLSSkipVerify,
-			Value:       def.TLSSkipVerify,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-transport", lowerPrefix),
-			Usage:       fmt.Sprintf("%v imap transport (persistent, standard)", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_TRANSPORT", upperPrefix)},
-			Destination: &cfg.Transport,
-			Value:       def.Transport,
-		},
-		&cli.BoolFlag{
-			Name:        fmt.Sprintf("%v-debug", lowerPrefix),
-			Usage:       fmt.Sprintf("display %v debug info", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_DEBUG", upperPrefix)},
-			Destination: &cfg.Debug,
-			Value:       def.Debug,
-		},
+	name, usage, envs = makeFlagNames("auth-method", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.AuthMethod,
+		Required:    false,
+		Value:       def.AuthMethod,
+	})
 
-		// OAuth2 flags
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-oauth2-provider", lowerPrefix),
-			Usage:       fmt.Sprintf("%v oauth2 provider", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH2_PROVIDER", upperPrefix)},
-			Destination: &cfg.OAuth2Prov,
-			Value:       def.OAuth2Prov,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-oauth2-client-id", lowerPrefix),
-			Usage:       fmt.Sprintf("%v-oauth2 client id", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH_CLIENT_ID", upperPrefix)},
-			Destination: &cfg.OAuth2Config.ClientID,
-			Value:       def.OAuth2Config.ClientID,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-oauth2-client-secret", lowerPrefix),
-			Usage:       fmt.Sprintf("%v-oauth2 client secret", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH_CLIENT_SECRET", upperPrefix)},
-			Destination: &cfg.OAuth2Config.ClientSecret,
-			Value:       def.OAuth2Config.ClientSecret,
-		},
-		&cli.StringFlag{
-			Name:        fmt.Sprintf("%v-oauth2-token-url", lowerPrefix),
-			Usage:       fmt.Sprintf("%v oauth2 token url", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH2_TOKEN_URL", upperPrefix)},
-			Destination: &cfg.OAuth2Config.Endpoint.TokenURL,
-			Value:       def.OAuth2Config.Endpoint.TokenURL,
-		},
-		&cli.StringSliceFlag{
-			Name:        fmt.Sprintf("%v-oauth2-scopes", lowerPrefix),
-			Usage:       fmt.Sprintf("%v oauth2 scopes", lowerPrefix),
-			EnvVars:     []string{fmt.Sprintf("MAILPUMP_%v_OAUTH2_SCOPES", upperPrefix)},
-			Destination: &cfg.OAuth2Scopes,
-		},
-	}
+	name, _, envs = makeFlagNames("username", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       fmt.Sprintf("%v imap username", prefix),
+		EnvVars:     envs,
+		Destination: &cfg.Username,
+		Required:    true,
+		Value:       def.Username,
+	})
+
+	name, _, envs = makeFlagNames("password", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       fmt.Sprintf("%v imap password", prefix),
+		EnvVars:     envs,
+		Destination: &cfg.Password,
+		Required:    false,
+		Value:       def.Password,
+	})
+
+	name, usage, envs = makeFlagNames("password-file", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       fmt.Sprintf("%v imap password file", prefix),
+		EnvVars:     envs,
+		Destination: &cfg.PasswordFile,
+		Required:    false,
+		Value:       def.PasswordFile,
+	})
+
+	name, _, envs = makeFlagNames("tls-skip-verify", prefix)
+	flags = append(flags, &cli.BoolFlag{
+		Name:        name,
+		Usage:       fmt.Sprintf("skip %v tls verification", prefix),
+		EnvVars:     envs,
+		Destination: &cfg.TLSSkipVerify,
+		Value:       def.TLSSkipVerify,
+	})
+
+	name, _, envs = makeFlagNames("transport", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       fmt.Sprintf("%v imap transport (persistent, standard)", prefix),
+		EnvVars:     envs,
+		Destination: &cfg.Transport,
+		Value:       def.Transport,
+	})
+
+	name, _, envs = makeFlagNames("debug", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       fmt.Sprintf("display %v debug info", prefix),
+		EnvVars:     envs,
+		Destination: &cfg.Transport,
+		Value:       def.Transport,
+	})
+
+	// OAuth2 flags
+	name, usage, envs = makeFlagNames("oauth2-provider", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.OAuth2Prov,
+		Value:       def.OAuth2Prov,
+	})
+
+	name, usage, envs = makeFlagNames("oauth2-client-id", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.OAuth2Config.ClientID,
+		Value:       def.OAuth2Config.ClientID,
+	})
+
+	name, usage, envs = makeFlagNames("oauth2-client-secret", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.OAuth2Config.ClientSecret,
+		Value:       def.OAuth2Config.ClientSecret,
+	})
+
+	name, usage, envs = makeFlagNames("oauth2-token-url", prefix)
+	flags = append(flags, &cli.StringFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.OAuth2Config.Endpoint.TokenURL,
+		Value:       def.OAuth2Config.Endpoint.TokenURL,
+	})
+
+	name, usage, envs = makeFlagNames("oauth2-scopes", prefix)
+	flags = append(flags, &cli.StringSliceFlag{
+		Name:        name,
+		Usage:       usage,
+		EnvVars:     envs,
+		Destination: &cfg.OAuth2Scopes,
+	})
+
+	return flags
 }
 
 func extractUrl(u *url.URL) (string, string, bool, error) {

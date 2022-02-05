@@ -23,6 +23,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"github.com/vs49688/mailpump/cmd/oauthlogin"
 	"github.com/vs49688/mailpump/cmd/run"
 )
 
@@ -36,6 +37,7 @@ to another mailbox on a different server, deleting the originals.
 	}
 
 	run.RegisterCommand(&app)
+	oauthlogin.RegisterCommand(&app)
 
 	err := app.Run(os.Args)
 	if err != nil {

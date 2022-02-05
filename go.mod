@@ -12,7 +12,9 @@ require (
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/emersion/go-oauthdialog v0.0.0-20160528192336-53626322c75d
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
+	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 )

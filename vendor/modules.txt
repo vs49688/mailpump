@@ -19,6 +19,9 @@ github.com/emersion/go-imap/utf7
 github.com/emersion/go-message
 github.com/emersion/go-message/mail
 github.com/emersion/go-message/textproto
+# github.com/emersion/go-oauthdialog v0.0.0-20160528192336-53626322c75d
+## explicit
+github.com/emersion/go-oauthdialog
 # github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 ## explicit
 github.com/emersion/go-sasl
@@ -33,6 +36,9 @@ github.com/russross/blackfriday/v2
 # github.com/sirupsen/logrus v1.8.1
 ## explicit
 github.com/sirupsen/logrus
+# github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
+## explicit
+github.com/skratchdot/open-golang/open
 # github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert

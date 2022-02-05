@@ -21,7 +21,6 @@ package config
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -224,11 +223,7 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 			return err
 		}
 
-		// Validate the token
-		tok := &oauth2.Token{}
-		if err := json.Unmarshal([]byte(pass), &tok); err != nil {
-			return err
-		}
+		tok := &oauth2.Token{RefreshToken: pass}
 
 		ctx := context.Background() // FIXME: use parent context
 		transConfig.Auth = imap.NewOAuthBearerAuthenticator(user, cfg.OAuth2.Config.TokenSource(ctx, tok))

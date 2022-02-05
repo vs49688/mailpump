@@ -37,7 +37,7 @@ var oauthProviderGoogle = oauth2.Config{
 }
 
 func DefaultOAuth2Config() OAuth2Config {
-	return OAuth2Config{}
+	return OAuth2Config{Provider: "custom"}
 }
 
 func (cfg *OAuth2Config) makeParameters(prefix string) []cli.Flag {
@@ -54,7 +54,6 @@ func (cfg *OAuth2Config) makeParameters(prefix string) []cli.Flag {
 		EnvVars:     envs,
 		Destination: &cfg.Provider,
 		Value:       def.Provider,
-		Required:    true,
 	})
 
 	name, usage, envs = makeFlagNames("client-id", prefix)

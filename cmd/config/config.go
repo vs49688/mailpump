@@ -38,8 +38,9 @@ func makeFlagNames(name string, prefix string) (string, string, []string) {
 	}
 
 	desc = strings.ReplaceAll(prefix, "-", " ") + " " + desc
+	env = "MAILPUMP_" + strings.ToUpper(strings.ReplaceAll(prefix, "-", "_")) + "_" + env
 
-	return prefix + "-" + name, desc, []string{"MAILPUMP_" + strings.ToUpper(prefix) + "_" + env}
+	return prefix + "-" + name, desc, []string{env}
 }
 
 func DefaultConfig() CliConfig {

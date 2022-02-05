@@ -31,17 +31,21 @@ var (
 )
 
 type IMAPConfig struct {
-	URL           string          `json:"url"`
-	Username      string          `json:"username"`
-	AuthMethod    string          `json:"auth_method"`
-	Password      string          `json:"-"`
-	PasswordFile  string          `json:"password_file"`
-	TLSSkipVerify bool            `json:"tls_skip_verify"`
-	Transport     string          `json:"transport"`
-	Debug         bool            `json:"debug"`
-	OAuth2Prov    string          `json:"oauth2_provider"`
-	OAuth2Scopes  cli.StringSlice `json:"-"`
-	OAuth2Config  oauth2.Config   `json:"-"`
+	URL           string       `json:"url"`
+	Username      string       `json:"username"`
+	AuthMethod    string       `json:"auth_method"`
+	Password      string       `json:"-"`
+	PasswordFile  string       `json:"password_file"`
+	TLSSkipVerify bool         `json:"tls_skip_verify"`
+	Transport     string       `json:"transport"`
+	Debug         bool         `json:"debug"`
+	OAuth2        OAuth2Config `json:"oauth2"`
+}
+
+type OAuth2Config struct {
+	Provider string          `json:"provider"`
+	Scopes   cli.StringSlice `json:"-"`
+	Config   oauth2.Config   `json:"-"`
 }
 
 type CliConfig struct {

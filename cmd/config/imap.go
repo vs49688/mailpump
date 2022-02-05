@@ -44,7 +44,7 @@ func DefaultIMAPConfig() IMAPConfig {
 		TLSSkipVerify: false,
 		Transport:     "persistent",
 		Debug:         false,
-		OAuth2Prov:    "custom",
+		OAuth2:        DefaultOAuth2Config(),
 	}
 }
 
@@ -132,50 +132,7 @@ func (cfg *IMAPConfig) makeIMAPParameters(prefix string) []cli.Flag {
 		Value:       def.Transport,
 	})
 
-	// OAuth2 flags
-	name, usage, envs = makeFlagNames("oauth2-provider", prefix)
-	flags = append(flags, &cli.StringFlag{
-		Name:        name,
-		Usage:       usage,
-		EnvVars:     envs,
-		Destination: &cfg.OAuth2Prov,
-		Value:       def.OAuth2Prov,
-	})
-
-	name, usage, envs = makeFlagNames("oauth2-client-id", prefix)
-	flags = append(flags, &cli.StringFlag{
-		Name:        name,
-		Usage:       usage,
-		EnvVars:     envs,
-		Destination: &cfg.OAuth2Config.ClientID,
-		Value:       def.OAuth2Config.ClientID,
-	})
-
-	name, usage, envs = makeFlagNames("oauth2-client-secret", prefix)
-	flags = append(flags, &cli.StringFlag{
-		Name:        name,
-		Usage:       usage,
-		EnvVars:     envs,
-		Destination: &cfg.OAuth2Config.ClientSecret,
-		Value:       def.OAuth2Config.ClientSecret,
-	})
-
-	name, usage, envs = makeFlagNames("oauth2-token-url", prefix)
-	flags = append(flags, &cli.StringFlag{
-		Name:        name,
-		Usage:       usage,
-		EnvVars:     envs,
-		Destination: &cfg.OAuth2Config.Endpoint.TokenURL,
-		Value:       def.OAuth2Config.Endpoint.TokenURL,
-	})
-
-	name, usage, envs = makeFlagNames("oauth2-scopes", prefix)
-	flags = append(flags, &cli.StringSliceFlag{
-		Name:        name,
-		Usage:       usage,
-		EnvVars:     envs,
-		Destination: &cfg.OAuth2Scopes,
-	})
+	flags = append(flags, cfg.OAuth2.makeParameters(fmt.Sprintf("%v-oauth2", prefix))...)
 
 	return flags
 }
@@ -258,13 +215,8 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 		}
 		transConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
 	case sasl.OAuthBearer:
-		switch cfg.OAuth2Prov {
-		case "custom":
-			cfg.OAuth2Config.Scopes = cfg.OAuth2Scopes.Value()
-		case "google":
-			cfg.OAuth2Config = oauthProviderGoogle
-		default:
-			return fmt.Errorf("unknown oauth2 provider: %v", cfg.OAuth2Prov)
+		if err := cfg.OAuth2.ResolveConfig(); err != nil {
+			return err
 		}
 
 		user, pass, err := cfg.validateUserPass(prefix)
@@ -279,7 +231,7 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 		}
 
 		ctx := context.Background() // FIXME: use parent context
-		transConfig.Auth = imap.NewOAuthBearerAuthenticator(user, cfg.OAuth2Config.TokenSource(ctx, tok))
+		transConfig.Auth = imap.NewOAuthBearerAuthenticator(user, cfg.OAuth2.Config.TokenSource(ctx, tok))
 	default:
 		return fmt.Errorf("unsupported auth method: %v", cfg.AuthMethod)
 

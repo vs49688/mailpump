@@ -39,7 +39,7 @@ import (
 
 func DefaultIMAPConfig() IMAPConfig {
 	return IMAPConfig{
-		AuthMethod:    "normal",
+		AuthMethod:    "LOGIN",
 		TLSSkipVerify: false,
 		Transport:     "persistent",
 		Debug:         false,
@@ -200,7 +200,7 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 	cfg.AuthMethod = strings.ToUpper(cfg.AuthMethod)
 
 	switch cfg.AuthMethod {
-	case "NORMAL":
+	case "LOGIN":
 		user, pass, err := cfg.validateUserPass(prefix)
 		if err != nil {
 			return err

@@ -27,6 +27,9 @@ github.com/emersion/go-oauthdialog
 github.com/emersion/go-sasl
 # github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594
 github.com/emersion/go-textwrapper
+# github.com/golang-jwt/jwt/v4 v4.3.0
+## explicit
+github.com/golang-jwt/jwt/v4
 # github.com/golang/protobuf v1.4.2
 github.com/golang/protobuf/proto
 # github.com/pmezard/go-difflib v1.0.0

@@ -21,16 +21,15 @@ package receiver
 import (
 	"bytes"
 	"crypto/tls"
-	"net"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/vs49688/mailpump/internal"
+
 	imap2 "github.com/vs49688/mailpump/imap"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/backend/memory"
-	"github.com/emersion/go-imap/server"
 	"github.com/emersion/go-message"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -38,37 +37,6 @@ import (
 	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/ingest"
 )
-
-func BuildTestIMAPServer(t *testing.T) (*server.Server, string) {
-	be := memory.New()
-	user, err := be.Login(nil, "username", "password")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-	mb, err := user.GetMailbox("INBOX")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	mailbox := mb.(*memory.Mailbox)
-	mailbox.Messages = nil
-
-	s := server.New(be)
-
-	s.AllowInsecureAuth = true
-
-	l, err := net.Listen("tcp", "localhost:0")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	go func() { err = s.Serve(l) }()
-
-	return s, l.Addr().String()
-}
 
 func makeTestMessage(t *testing.T, messageID string) (*imap.Message, int32) {
 	rfc822Section, _ := imap.ParseBodySectionName(imap.FetchRFC822)
@@ -103,8 +71,7 @@ func makeTestMessage(t *testing.T, messageID string) (*imap.Message, int32) {
 func TestReceiver(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 
-	imapServer, addr := BuildTestIMAPServer(t)
-	defer imapServer.Close()
+	_, addr, _ := internal.BuildTestIMAPServer(t)
 
 	ingCh := make(chan error)
 	ing, err := ingest.NewClient(&ingest.Config{
@@ -192,8 +159,7 @@ func TestLogoutWhenDisconnected(t *testing.T) {
 func TestImmediateLogout(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 
-	imapServer, addr := BuildTestIMAPServer(t)
-	defer imapServer.Close()
+	_, addr, _ := internal.BuildTestIMAPServer(t)
 
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{

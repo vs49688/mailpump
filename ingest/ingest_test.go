@@ -20,51 +20,19 @@ package ingest
 
 import (
 	"bytes"
-	"net"
 	"strings"
 	"testing"
+
+	"github.com/vs49688/mailpump/internal"
 
 	imap2 "github.com/vs49688/mailpump/imap"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/backend/memory"
-	"github.com/emersion/go-imap/server"
 	"github.com/emersion/go-message"
 	"github.com/stretchr/testify/assert"
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
 )
-
-func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox) {
-	be := memory.New()
-	user, err := be.Login(nil, "username", "password")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-	mb, err := user.GetMailbox("INBOX")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	mailbox := mb.(*memory.Mailbox)
-	mailbox.Messages = nil
-
-	s := server.New(be)
-
-	s.AllowInsecureAuth = true
-
-	l, err := net.Listen("tcp", "localhost:0")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	go func() { err = s.Serve(l) }()
-
-	return s, l.Addr().String(), mailbox
-}
 
 func makeTestMessage(t *testing.T, messageID string) (*imap.Message, []byte, int32) {
 	rfc822Section, _ := imap.ParseBodySectionName(imap.FetchRFC822)
@@ -96,8 +64,7 @@ func makeTestMessage(t *testing.T, messageID string) (*imap.Message, []byte, int
 }
 
 func runIngestTest(t *testing.T, f func(string) (*Client, error)) {
-	srv, addr, mailbox := BuildTestIMAPServer(t)
-	defer func() { _ = srv.Close() }()
+	_, addr, mailbox := internal.BuildTestIMAPServer(t)
 
 	ingest, err := f(addr)
 	defer ingest.Close()

@@ -23,12 +23,12 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"errors"
-	"net"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/emersion/go-imap/backend/memory"
+	"github.com/vs49688/mailpump/internal"
+
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-imap/server"
 	"github.com/emersion/go-sasl"
@@ -37,41 +37,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox) {
-	be := memory.New()
-	user, err := be.Login(nil, "username", "password")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	mb, err := user.GetMailbox("INBOX")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	mailbox := mb.(*memory.Mailbox)
-	mailbox.Messages = nil
-
-	s := server.New(be)
-	t.Cleanup(func() { _ = s.Close() })
-
-	s.AllowInsecureAuth = true
-
-	l, err := net.Listen("tcp", "localhost:0")
-	assert.NoError(t, err)
-	if err != nil {
-		t.FailNow()
-	}
-
-	go func() { err = s.Serve(l) }()
-
-	return s, l.Addr().String(), mailbox
-}
-
 func TestNormal(t *testing.T) {
-	_, address, _ := BuildTestIMAPServer(t)
+	_, address, _ := internal.BuildTestIMAPServer(t)
 
 	c, err := client.Dial(address)
 	if !assert.NoError(t, err) {
@@ -91,7 +58,7 @@ func TestNormal(t *testing.T) {
 }
 
 func TestOAuthBearer(t *testing.T) {
-	srv, address, _ := BuildTestIMAPServer(t)
+	srv, address, _ := internal.BuildTestIMAPServer(t)
 
 	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if !assert.NoError(t, err) {

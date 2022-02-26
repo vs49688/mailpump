@@ -23,18 +23,7 @@ import (
 	"fmt"
 
 	"github.com/urfave/cli/v2"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/endpoints"
-
-	"github.com/vs49688/mailpump/cmd/config/obscure"
 )
-
-var oauthProviderGoogle = oauth2.Config{
-	ClientID:     "684151813510-c11bifk1po8voa90cgr28gob7dldv6ou.apps.googleusercontent.com",
-	ClientSecret: obscure.MustReveal("G4zsjbGQZrWaPkkMu_czWh4-ulp9wj0JC8I8WpP-EUg0vHJvO5STPzBpz5Dc0HvNOGne"),
-	Endpoint:     endpoints.Google,
-	Scopes:       []string{"https://mail.google.com/"},
-}
 
 func DefaultOAuth2Config() OAuth2Config {
 	return OAuth2Config{Provider: "custom"}
@@ -50,7 +39,7 @@ func (cfg *OAuth2Config) makeParameters(prefix string) []cli.Flag {
 	name, usage, envs = makeFlagNames("provider", prefix)
 	flags = append(flags, &cli.StringFlag{
 		Name:        name,
-		Usage:       usage + " (custom, google)",
+		Usage:       usage + " (custom)",
 		EnvVars:     envs,
 		Destination: &cfg.Provider,
 		Value:       def.Provider,
@@ -101,8 +90,6 @@ func (cfg *OAuth2Config) ResolveConfig() error {
 	switch cfg.Provider {
 	case "custom":
 		cfg.Config.Scopes = cfg.Scopes.Value()
-	case "google":
-		cfg.Config = oauthProviderGoogle
 	default:
 		return fmt.Errorf("unknown oauth2 provider: %v", cfg.Provider)
 	}

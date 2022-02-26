@@ -23,7 +23,7 @@ OPTIONS:
    --source-tls-skip-verify             skip source tls verification (default: false) [$MAILPUMP_SOURCE_TLS_SKIP_VERIFY]
    --source-transport value             source imap transport (persistent, standard) (default: "persistent") [$MAILPUMP_SOURCE_TRANSPORT]
    --source-debug value                 display source debug info (default: "persistent") [$MAILPUMP_SOURCE_DEBUG]
-   --source-oauth2-provider value       source oauth2 provider (custom, google) (default: "custom") [$MAILPUMP_SOURCE_OAUTH2_PROVIDER]
+   --source-oauth2-provider value       source oauth2 provider (custom) (default: "custom") [$MAILPUMP_SOURCE_OAUTH2_PROVIDER]
    --source-oauth2-client-id value      source oauth2 client id [$MAILPUMP_SOURCE_OAUTH2_CLIENT_ID]
    --source-oauth2-client-secret value  source oauth2 client secret [$MAILPUMP_SOURCE_OAUTH2_CLIENT_SECRET]
    --source-oauth2-token-url value      source oauth2 token url [$MAILPUMP_SOURCE_OAUTH2_TOKEN_URL]
@@ -36,7 +36,7 @@ OPTIONS:
    --dest-tls-skip-verify               skip dest tls verification (default: false) [$MAILPUMP_DEST_TLS_SKIP_VERIFY]
    --dest-transport value               dest imap transport (persistent, standard) (default: "persistent") [$MAILPUMP_DEST_TRANSPORT]
    --dest-debug value                   display dest debug info (default: "persistent") [$MAILPUMP_DEST_DEBUG]
-   --dest-oauth2-provider value         dest oauth2 provider (custom, google) (default: "custom") [$MAILPUMP_DEST_OAUTH2_PROVIDER]
+   --dest-oauth2-provider value         dest oauth2 provider (custom) (default: "custom") [$MAILPUMP_DEST_OAUTH2_PROVIDER]
    --dest-oauth2-client-id value        dest oauth2 client id [$MAILPUMP_DEST_OAUTH2_CLIENT_ID]
    --dest-oauth2-client-secret value    dest oauth2 client secret [$MAILPUMP_DEST_OAUTH2_CLIENT_SECRET]
    --dest-oauth2-token-url value        dest oauth2 token url [$MAILPUMP_DEST_OAUTH2_TOKEN_URL]
@@ -89,12 +89,12 @@ The `OAUTHBEARER` authentication method corresponds to the SASL OAUTHBEARER mech
 
 [^rfc7628]: https://datatracker.ietf.org/doc/html/rfc7628
 
-MailPump has in-built support for Google, however can also be configured to
-use a custom OAuth2 provider. More in-built providers may be added in future releases.
+MailPump can be configured to use a custom OAuth2 provider. Built-in providers may be
+added in future releases.
 
 | Parameter                      | Example                                   | Required                      |
 |--------------------------------|-------------------------------------------|-------------------------------|
-| `*-oauth2-provider`            | `google,custom`                           | Yes                           |
+| `*-oauth2-provider`            | `custom`                                  | Yes                           |
 | `*-oauth2-client-id`           | `mailpump`                                | If `*-oauth2-provider=custom` |
 | `*-oauth2-client-secret`       | `d2baf3d2-5810-4dd1-afec-3a0101b28980`    | If `*-oauth2-provider=custom` |
 | `*-oauth2-token-url`           | `https://server.example.com/oauth2/token` | If `*-oauth2-provider=custom` |
@@ -120,7 +120,7 @@ USAGE:
    mailpump oauthlogin [command options] [arguments...]
 
 OPTIONS:
-   --provider value       provider (custom, google) (default: "custom") [$MAILPUMP_PROVIDER]
+   --provider value       provider (custom) (default: "custom") [$MAILPUMP_PROVIDER]
    --client-id value      client id [$MAILPUMP_CLIENT_ID]
    --client-secret value  client secret [$MAILPUMP_CLIENT_SECRET]
    --token-url value      token url [$MAILPUMP_TOKEN_URL]

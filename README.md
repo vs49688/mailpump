@@ -60,8 +60,9 @@ the `--source-auth-method` and `--dest-auth-method` parameters:
 The `LOGIN` authentication method corresponds to the IMAP LOGIN command[^rfc3501].
 
 Example parameters:
+
 | Parameter       | Value        | Required | 
-| --------------- | ------------ | -------- |
+|-----------------|--------------|----------|
 | `*-auth-method` | `LOGIN`      | Yes      |
 | `*-username`    | `joe.bloggs` | Yes      |
 | `*-password`    | `PassW0Rd1`  | Yes      |
@@ -75,8 +76,9 @@ The `PLAIN` authentication method corresponds to the SASL PLAIN mechanism[^rfc46
 [^rfc4616]: https://datatracker.ietf.org/doc/html/rfc4616
 
 Example parameters:
+
 | Parameter       | Value        | Required |
-| --------------- | ------------ | -------- |
+|-----------------|--------------|----------|
 | `*-auth-method` | `PLAIN`      | Yes      |
 | `*-username`    | `joe.bloggs` | Yes      |
 | `*-password`    | `PassW0Rd1`  | Yes      |
@@ -90,15 +92,15 @@ The `OAUTHBEARER` authentication method corresponds to the SASL OAUTHBEARER mech
 MailPump has in-built support for Google, however can also be configured to
 use a custom OAuth2 provider. More in-built providers may be added in future releases.
 
-| Parameter                       | Example                                        | Required                      |
-| ------------------------------- | ---------------------------------------------- | ----------------------------- |
-| `*-oauth2-provider`             | `google,custom`                                | Yes                           |
-| `*-oauth2-client-id`            | `mailpump`                                     | If `*-oauth2-provider=custom` |
-| `*-oauth2-client-secret`        | `d2baf3d2-5810-4dd1-afec-3a0101b28980`         | If `*-oauth2-provider=custom` |
-| `*-oauth2-token-url`            | `https://server.example.com/oauth2/token`      | If `*-oauth2-provider=custom` |
-| `*-oauth2-scopes`[^oauthmulti]  | `imap`                                         | If `*-oauth2-provider=custom` |
-| `*-username`                    | `joe.bloggs`                                   | Yes                           |
-| `*-password`[^oauthrefresh]     | `b2F1dGgyLXJlZnJlc2gtdG9rZW4K`                 | Yes                           |
+| Parameter                      | Example                                   | Required                      |
+|--------------------------------|-------------------------------------------|-------------------------------|
+| `*-oauth2-provider`            | `google,custom`                           | Yes                           |
+| `*-oauth2-client-id`           | `mailpump`                                | If `*-oauth2-provider=custom` |
+| `*-oauth2-client-secret`       | `d2baf3d2-5810-4dd1-afec-3a0101b28980`    | If `*-oauth2-provider=custom` |
+| `*-oauth2-token-url`           | `https://server.example.com/oauth2/token` | If `*-oauth2-provider=custom` |
+| `*-oauth2-scopes`[^oauthmulti] | `imap`                                    | If `*-oauth2-provider=custom` |
+| `*-username`                   | `joe.bloggs`                              | Yes                           |
+| `*-password`[^oauthrefresh]    | `b2F1dGgyLXJlZnJlc2gtdG9rZW4K`            | Yes                           |
 
 [^oauthmulti]: This may be specified multiple times to add multiple scopes.
   When configuring via environment variable, separate the values with commas.
@@ -127,8 +129,9 @@ OPTIONS:
 ```
 
 ## Provider URL Examples
+
 | Provider | URL                                      |
-| -------- | ---------------------------------------- |
+|----------|------------------------------------------|
 | Generic  | `imap[s]://hostname[:port]/mailbox/path` |
 | Migadu   | `imaps://imap.migadu.com/INBOX`          |
 | Yahoo!   | `imaps://imap.mail.yahoo.com/INBOX`      |

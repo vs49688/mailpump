@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell --pure -i bash -p go -p goimports -p gosec -p mockgen
+#!nix-shell --pure -i bash -p go -p gotools -p gosec -p mockgen
 
 set -euo pipefail
 
@@ -9,17 +9,17 @@ if [[ $# -gt 1 ]]; then
 fi
 
 if [[ $# -eq 0 ]]; then
-  STAGES="fmt generate goimports tidy vendor gosec build vet race test"
+  STAGES="generate vendor tidy fmt goimports gosec build vet race test"
 else
   STAGES=$1
 fi
 
 function stage_build() {
-    go build
+  go build
 }
 
 function stage_generate() {
-  go generate ./...
+  go generate -mod=readonly ./...
 }
 
 function stage_fmt() {

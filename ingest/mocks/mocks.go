@@ -74,17 +74,3 @@ func (mr *MockClientMockRecorder) IngestMessage(msg, ch interface{}) *gomock.Cal
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngestMessage", reflect.TypeOf((*MockClient)(nil).IngestMessage), msg, ch)
 }
-
-// IngestMessageSync mocks base method.
-func (m *MockClient) IngestMessageSync(msg *imap.Message) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IngestMessageSync", msg)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IngestMessageSync indicates an expected call of IngestMessageSync.
-func (mr *MockClientMockRecorder) IngestMessageSync(msg interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngestMessageSync", reflect.TypeOf((*MockClient)(nil).IngestMessageSync), msg)
-}

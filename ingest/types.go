@@ -43,8 +43,6 @@ type Response struct {
 type Client interface {
 	IngestMessage(msg *imap.Message, ch chan<- Response) error
 
-	IngestMessageSync(msg *imap.Message) error
-
 	Closed() <-chan struct{}
 
 	Close()

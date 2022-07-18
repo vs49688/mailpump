@@ -87,7 +87,7 @@ func TestReceiver(t *testing.T) {
 	// Add an initial message, the receiver should check this
 	testMsg, _ := makeTestMessage(t, "<01@localhost>")
 	testMsg.Uid = 1
-	err = ing.IngestMessageSync(testMsg)
+	err = ingest.IngestMessageSync(ing, testMsg)
 	assert.NoError(t, err)
 
 	ch := make(chan *imap.Message, 1)
@@ -121,7 +121,7 @@ func TestReceiver(t *testing.T) {
 	// or a force-fetch via timeout
 	testMsg, _ = makeTestMessage(t, "<02@localhost>")
 	testMsg.Uid = 2
-	err = ing.IngestMessageSync(testMsg)
+	err = ingest.IngestMessageSync(ing, testMsg)
 	assert.NoError(t, err)
 
 	t.Log("Waiting for message 2")

@@ -83,9 +83,9 @@ func (ingest *ingestClient) IngestMessage(msg *imap.Message, ch chan<- Response)
 	return nil
 }
 
-func (ingest *ingestClient) IngestMessageSync(msg *imap.Message) error {
+func IngestMessageSync(ingestClient Client, msg *imap.Message) error {
 	ch := make(chan Response)
-	if err := ingest.IngestMessage(msg, ch); err != nil {
+	if err := ingestClient.IngestMessage(msg, ch); err != nil {
 		return err
 	}
 

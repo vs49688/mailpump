@@ -73,7 +73,7 @@ func runIngestTest(t *testing.T, f func(string) (Client, error)) {
 
 	msg, data, _ := makeTestMessage(t, "test@example.com")
 	msg.Uid = 1
-	err = ingest.IngestMessageSync(msg)
+	err = IngestMessageSync(ingest, msg)
 	assert.NoError(t, err)
 
 	assert.Len(t, mailbox.Messages, 1)

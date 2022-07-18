@@ -47,20 +47,6 @@ func (mr *MockClientMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockClient)(nil).Close))
 }
 
-// Closed mocks base method.
-func (m *MockClient) Closed() <-chan struct{} {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Closed")
-	ret0, _ := ret[0].(<-chan struct{})
-	return ret0
-}
-
-// Closed indicates an expected call of Closed.
-func (mr *MockClientMockRecorder) Closed() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Closed", reflect.TypeOf((*MockClient)(nil).Closed))
-}
-
 // IngestMessage mocks base method.
 func (m *MockClient) IngestMessage(msg *imap.Message, ch chan<- ingest.Response) error {
 	m.ctrl.T.Helper()

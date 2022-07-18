@@ -147,10 +147,6 @@ done:
 	log.WithField("count", count).Trace("ingest_drained_requests")
 }
 
-func (ingest *ingestClient) Closed() <-chan struct{} {
-	return ingest.hasQuit
-}
-
 func (ingest *ingestClient) Close() {
 	close(ingest.wantQuit)
 	_ = <-ingest.hasQuit

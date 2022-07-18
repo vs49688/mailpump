@@ -20,7 +20,7 @@ package persistentclient
 
 import "github.com/vs49688/mailpump/imap"
 
-func (f *Factory) NewClient(cfg *imap.ClientConfig) (imap.Client, error) {
+func (f *Factory) NewClient(cfg *imap.Config) (imap.Client, error) {
 	c, err := NewClient(&Config{
 		HostPort:  cfg.HostPort,
 		Auth:      cfg.Auth,

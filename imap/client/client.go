@@ -28,7 +28,7 @@ import (
 
 type Factory struct{}
 
-func (f *Factory) NewClient(cfg *imap.ClientConfig) (imap.Client, error) {
+func (f *Factory) NewClient(cfg *imap.Config) (imap.Client, error) {
 	var c *client.Client
 	var err error
 	if cfg.TLS {

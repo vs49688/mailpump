@@ -13,7 +13,7 @@ func TestIdleCancellation(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 	f := &Factory{}
 
-	c, err := f.NewClient(&imap.ClientConfig{
+	c, err := f.NewClient(&imap.Config{
 		HostPort:  "0.0.0.0:993",
 		Auth:      imap.NewNormalAuthenticator("username", "password"),
 		TLS:       false,
@@ -37,7 +37,7 @@ func TestIdleAfterLogout(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 	f := &Factory{}
 
-	c, err := f.NewClient(&imap.ClientConfig{
+	c, err := f.NewClient(&imap.Config{
 		HostPort:  "0.0.0.0:993",
 		Auth:      imap.NewNormalAuthenticator("username", "password"),
 		TLS:       false,

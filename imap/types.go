@@ -54,7 +54,7 @@ type Authenticator interface {
 	Authenticate(c *client.Client) error
 }
 
-type ClientConfig struct {
+type Config struct {
 	HostPort  string
 	Auth      Authenticator
 	TLS       bool
@@ -63,8 +63,8 @@ type ClientConfig struct {
 	Updates   chan<- client.Update
 }
 
-type ClientFactory interface {
-	NewClient(cfg *ClientConfig) (Client, error)
+type Factory interface {
+	NewClient(cfg *Config) (Client, error)
 }
 
 type Message = imap.Message

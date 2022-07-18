@@ -26,9 +26,9 @@ import (
 	imap2 "github.com/vs49688/mailpump/imap"
 )
 
-func NewReceiver(cfg *Config, factory imap2.ClientFactory) (Client, error) {
+func NewReceiver(cfg *Config, factory imap2.Factory) (Client, error) {
 	updateChannel := make(chan client2.Update, 10)
-	c, err := factory.NewClient(&imap2.ClientConfig{
+	c, err := factory.NewClient(&imap2.Config{
 		HostPort:  cfg.HostPort,
 		Auth:      cfg.Auth,
 		TLS:       cfg.TLS,

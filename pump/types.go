@@ -33,7 +33,7 @@ type TransportConfig struct {
 	Mailbox   string
 	TLS       bool
 	TLSConfig *tls.Config
-	Factory   imap.ClientFactory
+	Factory   imap.Factory
 	Debug     bool
 }
 

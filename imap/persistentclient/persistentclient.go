@@ -196,7 +196,7 @@ func (c *PersistentIMAPClient) log() *log.Entry {
 
 func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
 	f := &client.Factory{}
-	c, err := f.NewClient(&imap.ClientConfig{
+	c, err := f.NewClient(&imap.Config{
 		HostPort:  cfg.HostPort,
 		Auth:      cfg.Auth,
 		TLS:       cfg.TLS,

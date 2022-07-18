@@ -26,7 +26,7 @@ import (
 
 // buildCurrentSequence builds an imap.SeqSet instance containing
 // the sequence numbers of all the current "known" messages.
-func (mr *MailReceiver) buildCurrentSequence() imap.SeqSet {
+func (mr *mailReceiver) buildCurrentSequence() imap.SeqSet {
 	existing := imap.SeqSet{}
 	for _, k := range mr.messages {
 		existing.AddNum(k.SeqNum)

@@ -182,7 +182,7 @@ func TestSequenceGeneration(t *testing.T) {
 		Messages: 53,
 	}
 
-	mr := MailReceiver{
+	mr := mailReceiver{
 		messages: map[uint32]*messageState{
 			1:  {UID: 1, SeqNum: 1},
 			2:  {UID: 2, SeqNum: 2},

@@ -26,7 +26,7 @@ import (
 	imap2 "github.com/vs49688/mailpump/imap"
 )
 
-func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error) {
+func NewReceiver(cfg *Config, factory imap2.ClientFactory) (Client, error) {
 	updateChannel := make(chan client2.Update, 10)
 	c, err := factory.NewClient(&imap2.ClientConfig{
 		HostPort:  cfg.HostPort,
@@ -61,7 +61,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 		fetchMaxInterval = 5 * time.Minute
 	}
 
-	mr := &MailReceiver{
+	mr := &mailReceiver{
 		client:        c,
 		updates:       updateChannel,
 		imapChannel:   make(chan interface{}),
@@ -85,9 +85,7 @@ func NewReceiver(cfg *Config, factory imap2.ClientFactory) (*MailReceiver, error
 	return mr, nil
 }
 
-// Ack acknowledges the processing of a message. If error is nil, it is assumed that
-// the message has fully processed and persisted, and thus is EXPUNGE'd from the server.
-func (mr *MailReceiver) Ack(UID uint32, error error) {
+func (mr *mailReceiver) Ack(UID uint32, error error) {
 	if error == nil {
 		log.WithField("uid", UID).Trace("receiver_ack_called")
 	} else {
@@ -114,7 +112,7 @@ func logMessageState(mstate *messageState) {
 	withMessageState(mstate).Info("receiver_message_update")
 }
 
-func (mr *MailReceiver) handleFetch(r *fetchResult) uint {
+func (mr *mailReceiver) handleFetch(r *fetchResult) uint {
 	var num uint = 0
 	log.WithField("uids", r.UIDs).Trace("receiver_got_fetch_result")
 	for uid, msg := range r.Messages {
@@ -135,7 +133,7 @@ func (mr *MailReceiver) handleFetch(r *fetchResult) uint {
 	return num
 }
 
-func (mr *MailReceiver) handleDelete(r *deleteResult) *messageState {
+func (mr *mailReceiver) handleDelete(r *deleteResult) *messageState {
 	e := log.WithFields(log.Fields{"uid": r.UID, "state": r.State})
 	if r.State == StateDeleted {
 		e.Info("receiver_message_deleted")
@@ -156,7 +154,7 @@ func (mr *MailReceiver) handleDelete(r *deleteResult) *messageState {
 	return nil
 }
 
-func (mr *MailReceiver) handleAck(r *ackRequest) *messageState {
+func (mr *mailReceiver) handleAck(r *ackRequest) *messageState {
 	if r.Error != nil {
 		log.WithError(r.Error).WithField("uid", r.UID).Warn("receiver_ack")
 	} else {
@@ -178,7 +176,7 @@ func (mr *MailReceiver) handleAck(r *ackRequest) *messageState {
 	return nil
 }
 
-func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
+func (mr *mailReceiver) handleMessageUpdate(upd client2.Update) bool {
 	switch vv := upd.(type) {
 	case *client2.StatusUpdate:
 		// This is INFO because it often contains useful info to have in the logs
@@ -202,7 +200,7 @@ func (mr *MailReceiver) handleMessageUpdate(upd client2.Update) bool {
 	return false
 }
 
-func (mr *MailReceiver) run() {
+func (mr *mailReceiver) run() {
 	state := StateNone
 	nextToProcess := map[uint32]*messageState{}
 	wantQuit := NewCounter()
@@ -421,7 +419,7 @@ done:
 	log.Trace("receiver_proc_quit")
 }
 
-func (mr *MailReceiver) Close() {
+func (mr *mailReceiver) Close() {
 	log.Trace("receiver_close_invoked")
 	mr.wantQuit <- struct{}{}
 	log.Trace("receiver_close_waiting_for_quit")

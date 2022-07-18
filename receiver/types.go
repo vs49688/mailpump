@@ -47,6 +47,14 @@ type Config struct {
 	DisableDeletions bool
 }
 
+type Client interface {
+	// Ack acknowledges the processing of a message. If error is nil, it is assumed that
+	// the message has fully processed and persisted, and thus is EXPUNGE'd from the server.
+	Ack(UID uint32, error error)
+
+	Close()
+}
+
 type ackRequest struct {
 	UID   uint32
 	Error error
@@ -141,7 +149,7 @@ func (s sstate) String() string {
 	}
 }
 
-type MailReceiver struct {
+type mailReceiver struct {
 	client imap2.Client
 
 	// client -> imap handler, state updates

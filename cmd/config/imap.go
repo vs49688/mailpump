@@ -21,6 +21,7 @@ package config
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -35,6 +36,11 @@ import (
 	"github.com/vs49688/mailpump/imap/persistentclient"
 	"github.com/vs49688/mailpump/pump"
 	"golang.org/x/oauth2"
+)
+
+var (
+	ErrIMAPMissingUsername = errors.New("missing username")
+	ErrIMAPMissingPassword = errors.New("missing password")
 )
 
 func DefaultIMAPConfig() IMAPConfig {
@@ -160,9 +166,9 @@ func extractUrl(u *url.URL) (string, string, bool, error) {
 	return net.JoinHostPort(host, port), strings.TrimPrefix(u.Path, "/"), useTLS, nil
 }
 
-func (cfg *IMAPConfig) validateUserPass(prefix string) (string, string, error) {
+func (cfg *IMAPConfig) validateUserPass() (string, string, error) {
 	if cfg.Username == "" {
-		return "", "", fmt.Errorf("\"%v-username\" is required when using %v auth", prefix, cfg.AuthMethod)
+		return "", "", ErrIMAPMissingUsername
 	}
 
 	var password string
@@ -178,13 +184,13 @@ func (cfg *IMAPConfig) validateUserPass(prefix string) (string, string, error) {
 
 		password = strings.TrimSpace(string(pass))
 	} else {
-		return "", "", fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
+		return "", "", ErrIMAPMissingPassword
 	}
 
 	return username, password, nil
 }
 
-func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, prefix string) error {
+func (cfg *IMAPConfig) BuildTransportConfig(transConfig *pump.TransportConfig) error {
 	sourceURL, err := url.Parse(cfg.URL)
 	if err != nil {
 		return err
@@ -201,14 +207,14 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 
 	switch cfg.AuthMethod {
 	case "LOGIN":
-		user, pass, err := cfg.validateUserPass(prefix)
+		user, pass, err := cfg.validateUserPass()
 		if err != nil {
 			return err
 		}
 
 		transConfig.Auth = imap.NewNormalAuthenticator(user, pass)
 	case sasl.Plain:
-		user, pass, err := cfg.validateUserPass(prefix)
+		user, pass, err := cfg.validateUserPass()
 		if err != nil {
 			return err
 		}
@@ -218,7 +224,7 @@ func (cfg *IMAPConfig) buildTransportConfig(transConfig *pump.TransportConfig, p
 			return err
 		}
 
-		user, pass, err := cfg.validateUserPass(prefix)
+		user, pass, err := cfg.validateUserPass()
 		if err != nil {
 			return err
 		}

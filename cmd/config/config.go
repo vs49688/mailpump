@@ -19,6 +19,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -134,15 +136,24 @@ func (cfg *CliConfig) Parameters() []cli.Flag {
 	return flags
 }
 
+func prettifyError(err error, prefix string, authMethod string) error {
+	if errors.Is(err, ErrIMAPMissingUsername) {
+		return fmt.Errorf("\"%v-username\" is required when using %v auth", prefix, authMethod)
+	} else if errors.Is(err, ErrIMAPMissingPassword) {
+		return fmt.Errorf("at least one of the \"%v-password\" or \"%v-password-file\" flags is required", prefix, prefix)
+	}
+	return err
+}
+
 func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
 	def := DefaultConfig()
 
-	if err := cfg.Source.buildTransportConfig(&pumpConfig.Source, "source"); err != nil {
-		return err
+	if err := cfg.Source.BuildTransportConfig(&pumpConfig.Source); err != nil {
+		return prettifyError(err, "source", cfg.Source.AuthMethod)
 	}
 
-	if err := cfg.Dest.buildTransportConfig(&pumpConfig.Dest, "dest"); err != nil {
-		return err
+	if err := cfg.Dest.BuildTransportConfig(&pumpConfig.Dest); err != nil {
+		return prettifyError(err, "dest", cfg.Dest.AuthMethod)
 	}
 
 	pumpConfig.IDLEFallbackInterval = cfg.IDLEFallbackInterval

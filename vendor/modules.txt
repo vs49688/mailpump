@@ -30,6 +30,9 @@ github.com/emersion/go-textwrapper
 # github.com/golang-jwt/jwt/v4 v4.3.0
 ## explicit
 github.com/golang-jwt/jwt/v4
+# github.com/golang/mock v1.4.4
+## explicit
+github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.5.2
 ## explicit
 github.com/golang/protobuf/proto

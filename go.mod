@@ -15,6 +15,7 @@ require (
 	github.com/emersion/go-oauthdialog v0.0.0-20160528192336-53626322c75d
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/golang-jwt/jwt/v4 v4.3.0
+	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
 	golang.org/x/net v0.0.0-20220524220425-1d687d428aca // indirect

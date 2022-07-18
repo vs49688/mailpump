@@ -54,6 +54,7 @@ type Config struct {
 type MailPump struct {
 	receiver      receiver.Client
 	ingest        ingest.Client
+	destMailbox   string
 	incoming      chan *imap.Message
 	ingestChannel chan ingest.Response
 }

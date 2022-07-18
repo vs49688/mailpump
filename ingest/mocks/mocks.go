@@ -48,15 +48,15 @@ func (mr *MockClientMockRecorder) Close() *gomock.Call {
 }
 
 // IngestMessage mocks base method.
-func (m *MockClient) IngestMessage(msg *imap.Message, ch chan<- ingest.Response) error {
+func (m *MockClient) IngestMessage(mailbox string, msg *imap.Message, ch chan<- ingest.Response) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IngestMessage", msg, ch)
+	ret := m.ctrl.Call(m, "IngestMessage", mailbox, msg, ch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // IngestMessage indicates an expected call of IngestMessage.
-func (mr *MockClientMockRecorder) IngestMessage(msg, ch interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) IngestMessage(mailbox, msg, ch interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngestMessage", reflect.TypeOf((*MockClient)(nil).IngestMessage), msg, ch)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngestMessage", reflect.TypeOf((*MockClient)(nil).IngestMessage), mailbox, msg, ch)
 }

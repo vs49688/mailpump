@@ -50,7 +50,6 @@ func NewClient(cfg *Config, factory imap2.ClientFactory) (Client, error) {
 		client:        imapClient,
 		rfc822Section: rfc822Section,
 		incoming:      make(chan request),
-		mbox:          cfg.Mailbox,
 		hasQuit:       make(chan struct{}),
 		wantQuit:      make(chan struct{}),
 		shutdown:      0,
@@ -69,8 +68,8 @@ func (ingest *ingestClient) isShutdown() bool {
 	return atomic.LoadInt32(&ingest.shutdown) != 0
 }
 
-func (ingest *ingestClient) IngestMessage(msg *imap.Message, ch chan<- Response) error {
-	log.WithFields(log.Fields{"uid": msg.Uid, "seq": msg.SeqNum}).Trace("ingest_message")
+func (ingest *ingestClient) IngestMessage(mailbox string, msg *imap.Message, ch chan<- Response) error {
+	log.WithFields(log.Fields{"mailbox": mailbox, "uid": msg.Uid, "seq": msg.SeqNum}).Trace("ingest_message")
 	if msg.Uid == 0 {
 		return errInvalidUID
 	}
@@ -79,13 +78,13 @@ func (ingest *ingestClient) IngestMessage(msg *imap.Message, ch chan<- Response)
 		return errConnectionClosed
 	}
 
-	ingest.incoming <- request{UID: msg.Uid, Message: msg, ch: ch}
+	ingest.incoming <- request{Mailbox: mailbox, UID: msg.Uid, Message: msg, ch: ch}
 	return nil
 }
 
-func IngestMessageSync(ingestClient Client, msg *imap.Message) error {
+func IngestMessageSync(mailbox string, ingestClient Client, msg *imap.Message) error {
 	ch := make(chan Response)
-	if err := ingestClient.IngestMessage(msg, ch); err != nil {
+	if err := ingestClient.IngestMessage(mailbox, msg, ch); err != nil {
 		return err
 	}
 
@@ -107,7 +106,7 @@ func (ingest *ingestClient) run() {
 				"uid": req.UID,
 				"seq": req.Message.SeqNum,
 			}).Trace("ingest_start")
-			err := ingest.client.Append(ingest.mbox, req.Message.Flags, req.Message.InternalDate, req.Message.GetBody(ingest.rfc822Section))
+			err := ingest.client.Append(req.Mailbox, req.Message.Flags, req.Message.InternalDate, req.Message.GetBody(ingest.rfc822Section))
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"uid": req.UID,

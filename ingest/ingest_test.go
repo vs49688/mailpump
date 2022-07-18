@@ -73,7 +73,7 @@ func runIngestTest(t *testing.T, f func(string) (Client, error)) {
 
 	msg, data, _ := makeTestMessage(t, "test@example.com")
 	msg.Uid = 1
-	err = IngestMessageSync(ingest, msg)
+	err = IngestMessageSync("INBOX", ingest, msg)
 	assert.NoError(t, err)
 
 	assert.Len(t, mailbox.Messages, 1)
@@ -85,7 +85,6 @@ func TestIngestStandard(t *testing.T) {
 		return NewClient(&Config{
 			HostPort:  addr,
 			Auth:      imap2.NewNormalAuthenticator("username", "password"),
-			Mailbox:   "INBOX",
 			TLS:       false,
 			TLSConfig: nil,
 			Debug:     true,
@@ -98,7 +97,6 @@ func TestIngestPersistent(t *testing.T) {
 		return NewClient(&Config{
 			HostPort:  addr,
 			Auth:      imap2.NewNormalAuthenticator("username", "password"),
-			Mailbox:   "INBOX",
 			TLS:       false,
 			TLSConfig: nil,
 			Debug:     true,

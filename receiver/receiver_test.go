@@ -77,7 +77,6 @@ func TestReceiver(t *testing.T) {
 	ing, err := ingest.NewClient(&ingest.Config{
 		HostPort:  addr,
 		Auth:      imap2.NewNormalAuthenticator("username", "password"),
-		Mailbox:   "INBOX",
 		TLS:       false,
 		TLSConfig: &tls.Config{InsecureSkipVerify: true},
 		Debug:     false,
@@ -87,7 +86,7 @@ func TestReceiver(t *testing.T) {
 	// Add an initial message, the receiver should check this
 	testMsg, _ := makeTestMessage(t, "<01@localhost>")
 	testMsg.Uid = 1
-	err = ingest.IngestMessageSync(ing, testMsg)
+	err = ingest.IngestMessageSync("INBOX", ing, testMsg)
 	assert.NoError(t, err)
 
 	ch := make(chan *imap.Message, 1)
@@ -121,7 +120,7 @@ func TestReceiver(t *testing.T) {
 	// or a force-fetch via timeout
 	testMsg, _ = makeTestMessage(t, "<02@localhost>")
 	testMsg.Uid = 2
-	err = ingest.IngestMessageSync(ing, testMsg)
+	err = ingest.IngestMessageSync("INBOX", ing, testMsg)
 	assert.NoError(t, err)
 
 	t.Log("Waiting for message 2")

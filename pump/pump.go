@@ -50,7 +50,6 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 	ing, err := ingest.NewClient(&ingest.Config{
 		HostPort:  cfg.Dest.HostPort,
 		Auth:      cfg.Dest.Auth,
-		Mailbox:   cfg.Dest.Mailbox,
 		TLS:       cfg.Dest.TLS,
 		TLSConfig: cfg.Dest.TLSConfig,
 		Debug:     cfg.Dest.Debug,
@@ -63,6 +62,7 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 	pump := &MailPump{
 		receiver:      recv,
 		ingest:        ing,
+		destMailbox:   cfg.Dest.Mailbox,
 		incoming:      ch,
 		ingestChannel: make(chan ingest.Response, 10),
 	}
@@ -88,7 +88,7 @@ func (pump *MailPump) tick(ch <-chan struct{}) error {
 				"uid": msg.Uid,
 				"seq": msg.SeqNum,
 			}).Trace("pump_handle_incoming")
-			if err := pump.ingest.IngestMessage(msg, pump.ingestChannel); err != nil {
+			if err := pump.ingest.IngestMessage(pump.destMailbox, msg, pump.ingestChannel); err != nil {
 				pump.receiver.Ack(msg.Uid, err)
 			}
 

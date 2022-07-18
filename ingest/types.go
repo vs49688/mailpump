@@ -28,7 +28,6 @@ import (
 type Config struct {
 	HostPort  string
 	Auth      imap2.Authenticator
-	Mailbox   string
 	TLS       bool
 	TLSConfig *tls.Config
 	Debug     bool
@@ -41,12 +40,13 @@ type Response struct {
 }
 
 type Client interface {
-	IngestMessage(msg *imap.Message, ch chan<- Response) error
+	IngestMessage(mailbox string, msg *imap.Message, ch chan<- Response) error
 
 	Close()
 }
 
 type request struct {
+	Mailbox string
 	UID     uint32
 	Message *imap.Message
 	ch      chan<- Response
@@ -56,7 +56,6 @@ type ingestClient struct {
 	client        imap2.Client
 	rfc822Section *imap.BodySectionName
 	incoming      chan request
-	mbox          string
 	hasQuit       chan struct{}
 	wantQuit      chan struct{}
 	shutdown      int32

@@ -29,7 +29,7 @@ type plainAuthenticator struct {
 	password string
 }
 
-func NewNormalAuthenticator(username string, password string) *plainAuthenticator {
+func NewNormalAuthenticator(username string, password string) Authenticator {
 	return &plainAuthenticator{username: username, password: password}
 }
 
@@ -41,7 +41,7 @@ type saslAuthenticator struct {
 	client sasl.Client
 }
 
-func NewSASLAuthenticator(client sasl.Client) *saslAuthenticator {
+func NewSASLAuthenticator(client sasl.Client) Authenticator {
 	return &saslAuthenticator{client: client}
 }
 
@@ -54,7 +54,7 @@ type oauthBearerAuthenticator struct {
 	opts   sasl.OAuthBearerOptions
 }
 
-func NewOAuthBearerAuthenticator(username string, source oauth2.TokenSource) *oauthBearerAuthenticator {
+func NewOAuthBearerAuthenticator(username string, source oauth2.TokenSource) Authenticator {
 	return &oauthBearerAuthenticator{
 		source: source,
 		opts:   sasl.OAuthBearerOptions{Username: username},

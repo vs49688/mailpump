@@ -40,13 +40,23 @@ type Response struct {
 	Error error
 }
 
+type Client interface {
+	IngestMessage(msg *imap.Message, ch chan<- Response) error
+
+	IngestMessageSync(msg *imap.Message) error
+
+	Closed() <-chan struct{}
+
+	Close()
+}
+
 type request struct {
 	UID     uint32
 	Message *imap.Message
 	ch      chan<- Response
 }
 
-type Client struct {
+type ingestClient struct {
 	client        imap2.Client
 	rfc822Section *imap.BodySectionName
 	incoming      chan request

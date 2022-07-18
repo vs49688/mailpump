@@ -27,7 +27,7 @@ import (
 	imap2 "github.com/vs49688/mailpump/imap"
 )
 
-func NewClient(cfg *Config, factory imap2.ClientFactory) (*Client, error) {
+func NewClient(cfg *Config, factory imap2.ClientFactory) (Client, error) {
 	rfc822Section, err := imap.ParseBodySectionName(imap.FetchRFC822)
 	if err != nil {
 		panic(err)
@@ -46,7 +46,7 @@ func NewClient(cfg *Config, factory imap2.ClientFactory) (*Client, error) {
 		return nil, err
 	}
 
-	ingest := &Client{
+	ingest := &ingestClient{
 		client:        imapClient,
 		rfc822Section: rfc822Section,
 		incoming:      make(chan request),
@@ -65,11 +65,11 @@ var (
 	errConnectionClosed = errors.New("connection closed")
 )
 
-func (ingest *Client) isShutdown() bool {
+func (ingest *ingestClient) isShutdown() bool {
 	return atomic.LoadInt32(&ingest.shutdown) != 0
 }
 
-func (ingest *Client) IngestMessage(msg *imap.Message, ch chan<- Response) error {
+func (ingest *ingestClient) IngestMessage(msg *imap.Message, ch chan<- Response) error {
 	log.WithFields(log.Fields{"uid": msg.Uid, "seq": msg.SeqNum}).Trace("ingest_message")
 	if msg.Uid == 0 {
 		return errInvalidUID
@@ -83,7 +83,7 @@ func (ingest *Client) IngestMessage(msg *imap.Message, ch chan<- Response) error
 	return nil
 }
 
-func (ingest *Client) IngestMessageSync(msg *imap.Message) error {
+func (ingest *ingestClient) IngestMessageSync(msg *imap.Message) error {
 	ch := make(chan Response)
 	if err := ingest.IngestMessage(msg, ch); err != nil {
 		return err
@@ -97,7 +97,7 @@ func (ingest *Client) IngestMessageSync(msg *imap.Message) error {
 	return nil
 }
 
-func (ingest *Client) run() {
+func (ingest *ingestClient) run() {
 	for {
 		select {
 		case <-ingest.wantQuit:
@@ -147,11 +147,11 @@ done:
 	log.WithField("count", count).Trace("ingest_drained_requests")
 }
 
-func (ingest *Client) Closed() <-chan struct{} {
+func (ingest *ingestClient) Closed() <-chan struct{} {
 	return ingest.hasQuit
 }
 
-func (ingest *Client) Close() {
+func (ingest *ingestClient) Close() {
 	close(ingest.wantQuit)
 	_ = <-ingest.hasQuit
 }

@@ -63,7 +63,7 @@ func makeTestMessage(t *testing.T, messageID string) (*imap.Message, []byte, int
 	return imsg, bb.Bytes(), int32(bb.Len())
 }
 
-func runIngestTest(t *testing.T, f func(string) (*Client, error)) {
+func runIngestTest(t *testing.T, f func(string) (Client, error)) {
 	_, addr, mailbox := internal.BuildTestIMAPServer(t)
 
 	ingest, err := f(addr)
@@ -81,7 +81,7 @@ func runIngestTest(t *testing.T, f func(string) (*Client, error)) {
 }
 
 func TestIngestStandard(t *testing.T) {
-	runIngestTest(t, func(addr string) (*Client, error) {
+	runIngestTest(t, func(addr string) (Client, error) {
 		return NewClient(&Config{
 			HostPort:  addr,
 			Auth:      imap2.NewNormalAuthenticator("username", "password"),
@@ -94,7 +94,7 @@ func TestIngestStandard(t *testing.T) {
 }
 
 func TestIngestPersistent(t *testing.T) {
-	runIngestTest(t, func(addr string) (*Client, error) {
+	runIngestTest(t, func(addr string) (Client, error) {
 		return NewClient(&Config{
 			HostPort:  addr,
 			Auth:      imap2.NewNormalAuthenticator("username", "password"),

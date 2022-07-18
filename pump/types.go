@@ -53,7 +53,7 @@ type Config struct {
 
 type MailPump struct {
 	receiver      *receiver.MailReceiver
-	ingest        *ingest.Client
+	ingest        ingest.Client
 	incoming      chan *imap.Message
 	ingestChannel chan ingest.Response
 }

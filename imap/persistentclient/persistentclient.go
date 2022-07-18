@@ -398,7 +398,7 @@ func (c *PersistentIMAPClient) drainRequests() {
 done:
 }
 
-func NewClient(cfg *Config) (*PersistentIMAPClient, error) {
+func NewClient(cfg *Config) (imap.Client, error) {
 	ourCfg := *cfg
 	if ourCfg.MaxDelay == 0 {
 		ourCfg.MaxDelay = 64 * time.Second

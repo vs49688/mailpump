@@ -9,13 +9,13 @@ if [[ $# -gt 1 ]]; then
 fi
 
 if [[ $# -eq 0 ]]; then
-  STAGES="generate vendor tidy fmt goimports gosec build vet race test"
+  STAGES="tidy vendor fmt goimports gosec build vet race test"
 else
   STAGES=$1
 fi
 
 function stage_build() {
-  go build
+  go build ./...
 }
 
 function stage_generate() {

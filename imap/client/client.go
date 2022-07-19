@@ -29,6 +29,10 @@ import (
 type Factory struct{}
 
 func (f *Factory) NewClient(cfg *imap.Config) (imap.Client, error) {
+	return NewClient(cfg)
+}
+
+func NewClient(cfg *imap.Config) (imap.Client, error) {
 	var c *client.Client
 	var err error
 	if cfg.TLS {

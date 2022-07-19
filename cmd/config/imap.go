@@ -249,10 +249,7 @@ func (cfg *IMAPConfig) BuildTransportConfig(transConfig *pump.TransportConfig) e
 	if cfg.Transport != "persistent" {
 		transConfig.Factory = client.Factory{}
 	} else {
-		transConfig.Factory = persistentclient.Factory{
-			Mailbox:  mailbox,
-			MaxDelay: 0,
-		}
+		transConfig.Factory = persistentclient.Factory{Mailbox: mailbox, MaxDelay: 0}
 	}
 
 	transConfig.Debug = cfg.Debug

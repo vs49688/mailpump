@@ -27,19 +27,15 @@ import (
 	imap2 "github.com/vs49688/mailpump/imap"
 )
 
-func NewClient(cfg *Config, factory imap2.Factory) (Client, error) {
+func NewClient(cfg *Config) (Client, error) {
 	rfc822Section, err := imap.ParseBodySectionName(imap.FetchRFC822)
 	if err != nil {
 		panic(err)
 	}
 
-	imapClient, err := factory.NewClient(&imap2.Config{
-		HostPort:  cfg.HostPort,
-		Auth:      cfg.Auth,
-		TLS:       cfg.TLS,
-		TLSConfig: cfg.TLSConfig,
-		Debug:     cfg.Debug,
-		Updates:   nil,
+	imapClient, err := cfg.Factory.NewClient(&imap2.ClientConfig{
+		ConnectionConfig: cfg.ConnectionConfig,
+		Updates:          nil,
 	})
 
 	if err != nil {

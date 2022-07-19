@@ -54,17 +54,39 @@ type Authenticator interface {
 	Authenticate(c *client.Client) error
 }
 
-type Config struct {
-	HostPort  string
-	Auth      Authenticator
-	TLS       bool
+// ConnectionConfig contains the base configuration required
+// for an IMAP connection
+type ConnectionConfig struct {
+	// HostPort is the combined HOSTNAME:PORT of the server
+	HostPort string
+
+	// Auth is the authenticator to use when connecting.
+	Auth Authenticator
+
+	// Mailbox is the default mailbox to be used when connecting.
+	// This should only populated if the connection was parsed from an
+	// imaps:// URL; In this case, it should set to the URL path without
+	// the leading /.
+	Mailbox string
+
+	// TLS, if set, indicates that connection should use TLS.
+	TLS bool
+
+	// TLSConfig contains the options to use if connecting via TLS.
+	// Ignored if TLS is false.
 	TLSConfig *tls.Config
-	Debug     bool
-	Updates   chan<- client.Update
+
+	// Debug, if set, enables verbose IMAP debug output
+	Debug bool
+}
+
+type ClientConfig struct {
+	ConnectionConfig
+	Updates chan<- client.Update
 }
 
 type Factory interface {
-	NewClient(cfg *Config) (Client, error)
+	NewClient(cfg *ClientConfig) (Client, error)
 }
 
 type Message = imap.Message

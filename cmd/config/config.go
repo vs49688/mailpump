@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v2"
+	"github.com/vs49688/mailpump/imap"
 	"github.com/vs49688/mailpump/pump"
 )
 
@@ -146,15 +147,23 @@ func prettifyError(err error, prefix string, authMethod string) error {
 }
 
 func (cfg *CliConfig) BuildPumpConfig(pumpConfig *pump.Config) error {
+	var connConfig imap.ConnectionConfig
+	var factory imap.Factory
+	var err error
+
 	def := DefaultConfig()
 
-	if err := cfg.Source.BuildTransportConfig(&pumpConfig.Source); err != nil {
+	if connConfig, factory, err = cfg.Source.Resolve(); err != nil {
 		return prettifyError(err, "source", cfg.Source.AuthMethod)
 	}
+	pumpConfig.Source = connConfig
+	pumpConfig.SourceFactory = factory
 
-	if err := cfg.Dest.BuildTransportConfig(&pumpConfig.Dest); err != nil {
+	if connConfig, factory, err = cfg.Dest.Resolve(); err != nil {
 		return prettifyError(err, "dest", cfg.Dest.AuthMethod)
 	}
+	pumpConfig.Dest = connConfig
+	pumpConfig.DestFactory = factory
 
 	pumpConfig.IDLEFallbackInterval = cfg.IDLEFallbackInterval
 	if pumpConfig.IDLEFallbackInterval == 0 {

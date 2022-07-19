@@ -19,7 +19,6 @@
 package persistentclient
 
 import (
-	"crypto/tls"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -28,14 +27,8 @@ import (
 )
 
 type Config struct {
-	HostPort  string
-	Auth      imap2.Authenticator
-	Mailbox   string
-	TLS       bool
-	TLSConfig *tls.Config
-	Debug     bool
-	MaxDelay  time.Duration
-	Updates   chan<- client.Update
+	imap2.ClientConfig
+	MaxDelay time.Duration
 }
 
 type idleRequest struct {
@@ -121,6 +114,5 @@ type PersistentIMAPClient struct {
 }
 
 type Factory struct {
-	Mailbox  string
 	MaxDelay time.Duration
 }

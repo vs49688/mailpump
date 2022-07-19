@@ -83,23 +83,30 @@ func runIngestTest(t *testing.T, f func(string) (Client, error)) {
 func TestIngestStandard(t *testing.T) {
 	runIngestTest(t, func(addr string) (Client, error) {
 		return NewClient(&Config{
-			HostPort:  addr,
-			Auth:      imap2.NewNormalAuthenticator("username", "password"),
-			TLS:       false,
-			TLSConfig: nil,
-			Debug:     true,
-		}, client.Factory{})
+			ConnectionConfig: imap2.ConnectionConfig{
+				HostPort:  addr,
+				Auth:      imap2.NewNormalAuthenticator("username", "password"),
+				TLS:       false,
+				TLSConfig: nil,
+				Debug:     true,
+			},
+			Factory: client.Factory{},
+		})
 	})
 }
 
 func TestIngestPersistent(t *testing.T) {
 	runIngestTest(t, func(addr string) (Client, error) {
 		return NewClient(&Config{
-			HostPort:  addr,
-			Auth:      imap2.NewNormalAuthenticator("username", "password"),
-			TLS:       false,
-			TLSConfig: nil,
-			Debug:     true,
-		}, persistentclient.Factory{Mailbox: "INBOX"})
+			ConnectionConfig: imap2.ConnectionConfig{
+				HostPort:  addr,
+				Auth:      imap2.NewNormalAuthenticator("username", "password"),
+				Mailbox:   "INBOX",
+				TLS:       false,
+				TLSConfig: nil,
+				Debug:     true,
+			},
+			Factory: persistentclient.Factory{},
+		})
 	})
 }

@@ -29,31 +29,24 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 	ch := make(chan *imap.Message, 20)
 
 	recv, err := receiver.NewReceiver(&receiver.Config{
-		HostPort:             cfg.Source.HostPort,
-		Auth:                 cfg.Source.Auth,
-		Mailbox:              cfg.Source.Mailbox,
-		TLS:                  cfg.Source.TLS,
-		TLSConfig:            cfg.Source.TLSConfig,
-		Debug:                cfg.Source.Debug,
+		ConnectionConfig:     cfg.Source,
+		Factory:              cfg.SourceFactory,
 		IDLEFallbackInterval: cfg.IDLEFallbackInterval,
 		BatchSize:            cfg.BatchSize,
 		DisableDeletions:     cfg.DisableDeletions,
 		FetchBufferSize:      cfg.FetchBufferSize,
 		FetchMaxInterval:     cfg.FetchMaxInterval,
 		Channel:              ch,
-	}, cfg.Source.Factory)
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
 	ing, err := ingest.NewClient(&ingest.Config{
-		HostPort:  cfg.Dest.HostPort,
-		Auth:      cfg.Dest.Auth,
-		TLS:       cfg.Dest.TLS,
-		TLSConfig: cfg.Dest.TLSConfig,
-		Debug:     cfg.Dest.Debug,
-	}, cfg.Dest.Factory)
+		ConnectionConfig: cfg.Dest,
+		Factory:          cfg.DestFactory,
+	})
 	if err != nil {
 		recv.Close()
 		return nil, err

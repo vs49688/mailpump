@@ -29,6 +29,14 @@ func DefaultOAuth2Config() OAuth2Config {
 	return OAuth2Config{Provider: "custom"}
 }
 
+func (cfg *OAuth2Config) fillDefaults() {
+	def := DefaultOAuth2Config()
+
+	if cfg.Provider == "" {
+		cfg.Provider = def.Provider
+	}
+}
+
 func (cfg *OAuth2Config) makeParameters(prefix string) []cli.Flag {
 	def := DefaultOAuth2Config()
 	var name string

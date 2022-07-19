@@ -19,7 +19,6 @@
 package pump
 
 import (
-	"crypto/tls"
 	"time"
 
 	"github.com/vs49688/mailpump/imap"
@@ -27,19 +26,12 @@ import (
 	"github.com/vs49688/mailpump/receiver"
 )
 
-type TransportConfig struct {
-	HostPort  string
-	Auth      imap.Authenticator
-	Mailbox   string
-	TLS       bool
-	TLSConfig *tls.Config
-	Factory   imap.Factory
-	Debug     bool
-}
-
 type Config struct {
-	Source TransportConfig
-	Dest   TransportConfig
+	Source imap.ConnectionConfig
+	Dest   imap.ConnectionConfig
+
+	SourceFactory imap.Factory
+	DestFactory   imap.Factory
 
 	IDLEFallbackInterval time.Duration
 	BatchSize            uint

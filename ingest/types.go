@@ -19,19 +19,13 @@
 package ingest
 
 import (
-	"crypto/tls"
-
 	"github.com/emersion/go-imap"
 	imap2 "github.com/vs49688/mailpump/imap"
 )
 
 type Config struct {
-	HostPort  string
-	Auth      imap2.Authenticator
-	TLS       bool
-	TLSConfig *tls.Config
-	Debug     bool
-	DoneChan  chan<- error
+	imap2.ConnectionConfig
+	Factory imap2.Factory
 }
 
 type Response struct {

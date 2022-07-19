@@ -73,15 +73,16 @@ func TestReceiver(t *testing.T) {
 
 	_, addr, _ := internal.BuildTestIMAPServer(t)
 
-	ingCh := make(chan error)
 	ing, err := ingest.NewClient(&ingest.Config{
-		HostPort:  addr,
-		Auth:      imap2.NewNormalAuthenticator("username", "password"),
-		TLS:       false,
-		TLSConfig: &tls.Config{InsecureSkipVerify: true},
-		Debug:     false,
-		DoneChan:  ingCh,
-	}, client.Factory{})
+		ConnectionConfig: imap2.ConnectionConfig{
+			HostPort:  addr,
+			Auth:      imap2.NewNormalAuthenticator("username", "password"),
+			TLS:       false,
+			TLSConfig: &tls.Config{InsecureSkipVerify: true},
+			Debug:     false,
+		},
+		Factory: client.Factory{},
+	})
 
 	// Add an initial message, the receiver should check this
 	testMsg, _ := makeTestMessage(t, "<01@localhost>")
@@ -91,21 +92,22 @@ func TestReceiver(t *testing.T) {
 
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
-		HostPort:             addr,
-		Auth:                 imap2.NewNormalAuthenticator("username", "password"),
-		Mailbox:              "INBOX",
-		TLS:                  false,
-		TLSConfig:            &tls.Config{InsecureSkipVerify: true},
+		ConnectionConfig: imap2.ConnectionConfig{
+			HostPort:  addr,
+			Auth:      imap2.NewNormalAuthenticator("username", "password"),
+			Mailbox:   "INBOX",
+			TLS:       false,
+			TLSConfig: &tls.Config{InsecureSkipVerify: true},
+			Debug:     false,
+		},
+		Factory:              persistentclient.Factory{},
 		Channel:              ch,
-		Debug:                false,
 		IDLEFallbackInterval: 1 * time.Second,
 
 		// The go-imap server doesn't always send mailbox updates,
 		// so depending on which state the receiver's in when this is
 		// ingested, we may need a force-fetch.
 		FetchMaxInterval: 5 * time.Second,
-	}, persistentclient.Factory{
-		Mailbox: "INBOX",
 	})
 	assert.NoError(t, err)
 	defer receiver.Close()
@@ -136,16 +138,17 @@ func TestLogoutWhenDisconnected(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
-		HostPort:             "0.0.0.0:993",
-		Auth:                 imap2.NewNormalAuthenticator("username", "password"),
-		Mailbox:              "INBOX",
-		TLS:                  false,
-		TLSConfig:            nil,
+		ConnectionConfig: imap2.ConnectionConfig{
+			HostPort:  "0.0.0.0:993",
+			Auth:      imap2.NewNormalAuthenticator("username", "password"),
+			Mailbox:   "INBOX",
+			TLS:       false,
+			TLSConfig: nil,
+			Debug:     true,
+		},
+		Factory:              persistentclient.Factory{},
 		Channel:              ch,
-		Debug:                true,
 		IDLEFallbackInterval: 1 * time.Second,
-	}, persistentclient.Factory{
-		Mailbox: "INBOX",
 	})
 	assert.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
@@ -162,15 +165,18 @@ func TestImmediateLogout(t *testing.T) {
 
 	ch := make(chan *imap.Message, 1)
 	receiver, err := NewReceiver(&Config{
-		HostPort:             addr,
-		Auth:                 imap2.NewNormalAuthenticator("username", "password"),
-		Mailbox:              "INBOX",
-		TLS:                  false,
-		TLSConfig:            nil,
+		ConnectionConfig: imap2.ConnectionConfig{
+			HostPort:  addr,
+			Auth:      imap2.NewNormalAuthenticator("username", "password"),
+			Mailbox:   "INBOX",
+			TLS:       false,
+			TLSConfig: nil,
+			Debug:     true,
+		},
+		Factory:              client.Factory{},
 		Channel:              ch,
-		Debug:                true,
 		IDLEFallbackInterval: 1 * time.Second,
-	}, client.Factory{})
+	})
 	assert.NoError(t, err)
 	defer receiver.Close()
 }

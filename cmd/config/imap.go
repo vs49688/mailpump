@@ -34,7 +34,6 @@ import (
 	"github.com/vs49688/mailpump/imap"
 	"github.com/vs49688/mailpump/imap/client"
 	"github.com/vs49688/mailpump/imap/persistentclient"
-	"github.com/vs49688/mailpump/pump"
 	"golang.org/x/oauth2"
 )
 
@@ -51,6 +50,20 @@ func DefaultIMAPConfig() IMAPConfig {
 		Debug:         false,
 		OAuth2:        DefaultOAuth2Config(),
 	}
+}
+
+func (cfg *IMAPConfig) fillDefaults() {
+	def := DefaultIMAPConfig()
+
+	if cfg.AuthMethod == "" {
+		cfg.AuthMethod = def.AuthMethod
+	}
+
+	if cfg.Transport == "" {
+		cfg.Transport = def.Transport
+	}
+
+	cfg.OAuth2.fillDefaults()
 }
 
 func (cfg *IMAPConfig) makeIMAPParameters(prefix string) []cli.Flag {
@@ -190,18 +203,24 @@ func (cfg *IMAPConfig) validateUserPass() (string, string, error) {
 	return username, password, nil
 }
 
-func (cfg *IMAPConfig) BuildTransportConfig(transConfig *pump.TransportConfig) error {
+// Resolve will validate and resolve the configuration into an imap.ConnectionConfig, and
+// an imap.Factory.
+func (cfg *IMAPConfig) Resolve() (imap.ConnectionConfig, imap.Factory, error) {
+	cfg.fillDefaults()
+
+	connConfig := imap.ConnectionConfig{}
+
 	sourceURL, err := url.Parse(cfg.URL)
 	if err != nil {
-		return err
+		return imap.ConnectionConfig{}, nil, err
 	}
 
 	hostPort, mailbox, wantTLS, err := extractUrl(sourceURL)
 	if err != nil {
-		return err
+		return imap.ConnectionConfig{}, nil, err
 	}
 
-	transConfig.HostPort = hostPort
+	connConfig.HostPort = hostPort
 
 	cfg.AuthMethod = strings.ToUpper(cfg.AuthMethod)
 
@@ -209,49 +228,50 @@ func (cfg *IMAPConfig) BuildTransportConfig(transConfig *pump.TransportConfig) e
 	case "LOGIN":
 		user, pass, err := cfg.validateUserPass()
 		if err != nil {
-			return err
+			return imap.ConnectionConfig{}, nil, err
 		}
 
-		transConfig.Auth = imap.NewNormalAuthenticator(user, pass)
+		connConfig.Auth = imap.NewNormalAuthenticator(user, pass)
 	case sasl.Plain:
 		user, pass, err := cfg.validateUserPass()
 		if err != nil {
-			return err
+			return imap.ConnectionConfig{}, nil, err
 		}
-		transConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
+		connConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
 	case sasl.OAuthBearer:
 		if err := cfg.OAuth2.ResolveConfig(); err != nil {
-			return err
+			return imap.ConnectionConfig{}, nil, err
 		}
 
 		user, pass, err := cfg.validateUserPass()
 		if err != nil {
-			return err
+			return imap.ConnectionConfig{}, nil, err
 		}
 
 		tok := &oauth2.Token{RefreshToken: pass}
 
 		ctx := context.Background() // FIXME: use parent context
-		transConfig.Auth = imap.NewOAuthBearerAuthenticator(user, cfg.OAuth2.Config.TokenSource(ctx, tok))
+		connConfig.Auth = imap.NewOAuthBearerAuthenticator(user, cfg.OAuth2.Config.TokenSource(ctx, tok))
 	default:
-		return fmt.Errorf("unsupported auth method: %v", cfg.AuthMethod)
+		return imap.ConnectionConfig{}, nil, fmt.Errorf("unsupported auth method: %v", cfg.AuthMethod)
 
 	}
 
-	transConfig.Mailbox = mailbox
-	transConfig.TLS = wantTLS
-	transConfig.TLSConfig = nil
+	connConfig.Mailbox = mailbox
+	connConfig.TLS = wantTLS
+	connConfig.TLSConfig = nil
 	if cfg.TLSSkipVerify {
 		// #nosec G402
-		transConfig.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		connConfig.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
+	var factory imap.Factory
 	if cfg.Transport != "persistent" {
-		transConfig.Factory = client.Factory{}
+		factory = client.Factory{}
 	} else {
-		transConfig.Factory = persistentclient.Factory{Mailbox: mailbox, MaxDelay: 0}
+		factory = persistentclient.Factory{MaxDelay: 0}
 	}
 
-	transConfig.Debug = cfg.Debug
-	return nil
+	connConfig.Debug = cfg.Debug
+	return connConfig, factory, nil
 }

@@ -195,13 +195,15 @@ func (c *PersistentIMAPClient) log() *log.Entry {
 }
 
 func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
-	c, err := client.NewClient(&imap.Config{
-		HostPort:  cfg.HostPort,
-		Auth:      cfg.Auth,
-		TLS:       cfg.TLS,
-		TLSConfig: cfg.TLSConfig,
-		Debug:     cfg.Debug,
-		Updates:   cfg.Updates,
+	c, err := client.NewClient(&imap.ClientConfig{
+		ConnectionConfig: imap.ConnectionConfig{
+			HostPort:  cfg.HostPort,
+			Auth:      cfg.Auth,
+			TLS:       cfg.TLS,
+			TLSConfig: cfg.TLSConfig,
+			Debug:     cfg.Debug,
+		},
+		Updates: cfg.Updates,
 	})
 
 	if err != nil {

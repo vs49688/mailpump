@@ -19,7 +19,6 @@
 package receiver
 
 import (
-	"crypto/tls"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -28,12 +27,8 @@ import (
 )
 
 type Config struct {
-	HostPort  string
-	Auth      imap2.Authenticator
-	Mailbox   string
-	TLS       bool
-	TLSConfig *tls.Config
-	Debug     bool
+	imap2.ConnectionConfig
+	Factory imap2.Factory
 
 	IDLEFallbackInterval time.Duration
 	BatchSize            uint

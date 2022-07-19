@@ -97,7 +97,7 @@ func (cfg *OAuth2Config) Parameters() []cli.Flag {
 func (cfg *OAuth2Config) ResolveConfig() error {
 	switch cfg.Provider {
 	case "custom":
-		cfg.Config.Scopes = cfg.Scopes.Value()
+		cfg.Config.Scopes = append(cfg.Config.Scopes, cfg.Scopes.Value()...)
 	default:
 		return fmt.Errorf("unknown oauth2 provider: %v", cfg.Provider)
 	}

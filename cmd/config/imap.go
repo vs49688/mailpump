@@ -239,7 +239,7 @@ func (cfg *IMAPConfig) Resolve() (imap.ConnectionConfig, imap.Factory, error) {
 		}
 		connConfig.Auth = imap.NewSASLAuthenticator(sasl.NewPlainClient("", user, pass))
 	case sasl.OAuthBearer:
-		if err := cfg.OAuth2.ResolveConfig(); err != nil {
+		if err := cfg.OAuth2.Resolve(); err != nil {
 			return imap.ConnectionConfig{}, nil, err
 		}
 

@@ -39,7 +39,7 @@ func RegisterCommand(app *cli.App) *cli.App {
 }
 
 func oauthlogin(ctx *cli.Context, cfg *config.OAuth2Config) error {
-	if err := cfg.ResolveConfig(); err != nil {
+	if err := cfg.Resolve(); err != nil {
 		return err
 	}
 

@@ -94,7 +94,7 @@ func (cfg *OAuth2Config) Parameters() []cli.Flag {
 	return cfg.makeParameters("")
 }
 
-func (cfg *OAuth2Config) ResolveConfig() error {
+func (cfg *OAuth2Config) Resolve() error {
 	switch cfg.Provider {
 	case "custom":
 		cfg.Config.Scopes = append(cfg.Config.Scopes, cfg.Scopes.Value()...)

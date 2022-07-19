@@ -22,6 +22,8 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/emersion/go-sasl"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 )
@@ -48,10 +50,17 @@ type Client interface {
 	FlagQuit()
 }
 
+// Authenticatable is the minimal set of functions that are
+// used by an Authenticator. This is mainly to assist with mocking.
+type Authenticatable interface {
+	Login(username, password string) error
+	Authenticate(auth sasl.Client) error
+}
+
 // Authenticator provides a common interface to authenticate via
 // username/password and SASL.
 type Authenticator interface {
-	Authenticate(c *client.Client) error
+	Authenticate(a Authenticatable) error
 }
 
 // ConnectionConfig contains the base configuration required

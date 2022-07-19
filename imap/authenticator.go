@@ -19,7 +19,6 @@
 package imap
 
 import (
-	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
 	"golang.org/x/oauth2"
 )
@@ -33,7 +32,7 @@ func NewNormalAuthenticator(username string, password string) Authenticator {
 	return &plainAuthenticator{username: username, password: password}
 }
 
-func (a *plainAuthenticator) Authenticate(c *client.Client) error {
+func (a *plainAuthenticator) Authenticate(c Authenticatable) error {
 	return c.Login(a.username, a.password)
 }
 
@@ -45,7 +44,7 @@ func NewSASLAuthenticator(client sasl.Client) Authenticator {
 	return &saslAuthenticator{client: client}
 }
 
-func (a *saslAuthenticator) Authenticate(c *client.Client) error {
+func (a *saslAuthenticator) Authenticate(c Authenticatable) error {
 	return c.Authenticate(a.client)
 }
 
@@ -61,7 +60,7 @@ func NewOAuthBearerAuthenticator(username string, source oauth2.TokenSource) Aut
 	}
 }
 
-func (a *oauthBearerAuthenticator) Authenticate(c *client.Client) error {
+func (a *oauthBearerAuthenticator) Authenticate(c Authenticatable) error {
 	tok, err := a.source.Token()
 	if err != nil {
 		return err

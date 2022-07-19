@@ -11,7 +11,7 @@ import (
 
 func TestIdleCancellation(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
-	f := &Factory{}
+	f := Factory{}
 
 	c, err := f.NewClient(&imap.Config{
 		HostPort:  "0.0.0.0:993",
@@ -35,7 +35,7 @@ func TestIdleCancellation(t *testing.T) {
 
 func TestIdleAfterLogout(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
-	f := &Factory{}
+	f := Factory{}
 
 	c, err := f.NewClient(&imap.Config{
 		HostPort:  "0.0.0.0:993",

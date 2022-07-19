@@ -28,7 +28,7 @@ import (
 
 type Factory struct{}
 
-func (f *Factory) NewClient(cfg *imap.Config) (imap.Client, error) {
+func (f Factory) NewClient(cfg *imap.Config) (imap.Client, error) {
 	return NewClient(cfg)
 }
 

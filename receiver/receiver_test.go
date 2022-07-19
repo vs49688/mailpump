@@ -81,7 +81,7 @@ func TestReceiver(t *testing.T) {
 		TLSConfig: &tls.Config{InsecureSkipVerify: true},
 		Debug:     false,
 		DoneChan:  ingCh,
-	}, &client.Factory{})
+	}, client.Factory{})
 
 	// Add an initial message, the receiver should check this
 	testMsg, _ := makeTestMessage(t, "<01@localhost>")
@@ -104,7 +104,7 @@ func TestReceiver(t *testing.T) {
 		// so depending on which state the receiver's in when this is
 		// ingested, we may need a force-fetch.
 		FetchMaxInterval: 5 * time.Second,
-	}, &persistentclient.Factory{
+	}, persistentclient.Factory{
 		Mailbox: "INBOX",
 	})
 	assert.NoError(t, err)
@@ -144,7 +144,7 @@ func TestLogoutWhenDisconnected(t *testing.T) {
 		Channel:              ch,
 		Debug:                true,
 		IDLEFallbackInterval: 1 * time.Second,
-	}, &persistentclient.Factory{
+	}, persistentclient.Factory{
 		Mailbox: "INBOX",
 	})
 	assert.NoError(t, err)
@@ -170,7 +170,7 @@ func TestImmediateLogout(t *testing.T) {
 		Channel:              ch,
 		Debug:                true,
 		IDLEFallbackInterval: 1 * time.Second,
-	}, &client.Factory{})
+	}, client.Factory{})
 	assert.NoError(t, err)
 	defer receiver.Close()
 }

@@ -247,9 +247,9 @@ func (cfg *IMAPConfig) BuildTransportConfig(transConfig *pump.TransportConfig) e
 	}
 
 	if cfg.Transport != "persistent" {
-		transConfig.Factory = &client.Factory{}
+		transConfig.Factory = client.Factory{}
 	} else {
-		transConfig.Factory = &persistentclient.Factory{
+		transConfig.Factory = persistentclient.Factory{
 			Mailbox:  mailbox,
 			MaxDelay: 0,
 		}

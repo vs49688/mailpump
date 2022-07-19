@@ -88,7 +88,7 @@ func TestIngestStandard(t *testing.T) {
 			TLS:       false,
 			TLSConfig: nil,
 			Debug:     true,
-		}, &client.Factory{})
+		}, client.Factory{})
 	})
 }
 
@@ -100,6 +100,6 @@ func TestIngestPersistent(t *testing.T) {
 			TLS:       false,
 			TLSConfig: nil,
 			Debug:     true,
-		}, &persistentclient.Factory{Mailbox: "INBOX"})
+		}, persistentclient.Factory{Mailbox: "INBOX"})
 	})
 }

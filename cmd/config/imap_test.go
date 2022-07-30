@@ -85,6 +85,25 @@ func TestIMAPConfig_Resolve_PasswordFile(t *testing.T) {
 	}, connConfig)
 }
 
+func TestIMAPConfig_Resolve_Systemd(t *testing.T) {
+	cfg := getTestIMAPConfig()
+	cfg.Password = ""
+	cfg.SystemdCredential = "testpass.txt"
+
+	t.Setenv("CREDENTIALS_DIRECTORY", "testdata")
+
+	connConfig, _, err := cfg.Resolve()
+	assert.NoError(t, err)
+	assert.Equal(t, imap.ConnectionConfig{
+		HostPort:  "imap.hostname.com:1234",
+		Auth:      imap.NewNormalAuthenticator("username", "password"),
+		Mailbox:   "INBOX",
+		TLS:       true,
+		TLSConfig: nil,
+		Debug:     false,
+	}, connConfig)
+}
+
 func TestIMAPConfig_Resolve_TLS(t *testing.T) {
 	cfg := getTestIMAPConfig()
 	cfg.TLSSkipVerify = true

@@ -26,6 +26,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/url"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/emersion/go-sasl"
@@ -38,8 +41,9 @@ import (
 )
 
 var (
-	ErrIMAPMissingUsername = errors.New("missing username")
-	ErrIMAPMissingPassword = errors.New("missing password")
+	ErrIMAPMissingUsername      = errors.New("missing username")
+	ErrIMAPMissingPassword      = errors.New("missing password")
+	ErrSystemdCredentialsNotSet = errors.New("$CREDENTIALS_DIRECTORY not set")
 )
 
 func DefaultIMAPConfig() IMAPConfig {
@@ -191,6 +195,24 @@ func (cfg *IMAPConfig) validateUserPass() (string, string, error) {
 		password = cfg.Password
 	} else if cfg.PasswordFile != "" {
 		pass, err := ioutil.ReadFile(cfg.PasswordFile)
+		if err != nil {
+			return "", "", err
+		}
+
+		password = strings.TrimSpace(string(pass))
+	} else if cfg.SystemdCredential != "" {
+		credsDir := os.Getenv("CREDENTIALS_DIRECTORY")
+		if credsDir == "" {
+			return "", "", ErrSystemdCredentialsNotSet
+		}
+
+		credsDir = filepath.Clean(credsDir)
+		credPath := filepath.Clean(path.Join(credsDir, cfg.SystemdCredential))
+		if !strings.HasPrefix(credPath, credsDir) {
+			return "", "", fmt.Errorf("resolved credential path outside $CREDENTIALS_DIRECTORY: %v", credPath)
+		}
+
+		pass, err := ioutil.ReadFile(credPath)
 		if err != nil {
 			return "", "", err
 		}

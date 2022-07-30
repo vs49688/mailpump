@@ -40,6 +40,8 @@ type IMAPConfig struct {
 	Transport     string       `json:"transport"`
 	Debug         bool         `json:"debug"`
 	OAuth2        OAuth2Config `json:"oauth2"`
+
+	SystemdCredential string `json:"systemd_credential,omitempty"`
 }
 
 type OAuth2Config struct {

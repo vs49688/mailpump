@@ -60,12 +60,10 @@ func NewMailPump(cfg *Config) (*MailPump, error) {
 		return nil, err
 	}
 
-	evch := make(chan interface{})
 	pump := &MailPump{
 		receiver:      recv,
 		ingest:        ing,
 		incoming:      ch,
-		eventChannel:  evch,
 		ingestChannel: make(chan ingest.Response, 10),
 	}
 

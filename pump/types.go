@@ -55,6 +55,5 @@ type MailPump struct {
 	receiver      *receiver.MailReceiver
 	ingest        *ingest.Client
 	incoming      chan *imap.Message
-	eventChannel  chan interface{}
 	ingestChannel chan ingest.Response
 }

@@ -56,7 +56,7 @@
       };
     };
 
-    devShell.x86_64-linux = self.packages.x86_64-linux.mailpump.overrideAttrs(old: {
+    devShells.x86_64-linux.default = self.packages.x86_64-linux.mailpump.overrideAttrs(old: {
       nativeBuildInputs = old.nativeBuildInputs ++ old.passthru.devTools;
     });
   };

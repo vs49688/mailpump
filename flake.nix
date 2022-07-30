@@ -29,6 +29,31 @@
       inherit (pkgs) mailpump;
 
       default = mailpump;
+
+      mailpump-static = mailpump.overrideAttrs(old: {
+        ldflags     = [ "-s" "-w" ];
+        CGO_ENABLED = 0;
+      });
+
+      ci = pkgs.stdenvNoCC.mkDerivation rec {
+        inherit (mailpump) version;
+
+        pname = "mailpump-ci";
+
+        dontUnpack = true;
+
+        installPhase = ''
+          mkdir -p $out
+
+          cp "${mailpump-static}/bin/mailpump" \
+            "$out/mailpump-${version}-${mailpump-static.stdenv.hostPlatform.system}"
+          chmod 0755 "$out/mailpump-${version}-${mailpump-static.stdenv.hostPlatform.system}"
+
+          cd "$out" && for i in *; do
+            sha256sum -b "$i" > "$i.sha256"
+          done
+        '';
+      };
     };
 
     devShell.x86_64-linux = self.packages.x86_64-linux.mailpump.overrideAttrs(old: {

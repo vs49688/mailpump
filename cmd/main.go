@@ -25,6 +25,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/vs49688/mailpump/cmd/oauthlogin"
 	"github.com/vs49688/mailpump/cmd/run"
+	run_multi "github.com/vs49688/mailpump/cmd/run-multi"
 )
 
 func Main() {
@@ -37,6 +38,7 @@ to another mailbox on a different server, deleting the originals.
 	}
 
 	run.RegisterCommand(&app)
+	run_multi.RegisterCommand(&app)
 	oauthlogin.RegisterCommand(&app)
 
 	err := app.Run(os.Args)

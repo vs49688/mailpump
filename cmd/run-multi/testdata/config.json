@@ -1,0 +1,25 @@
+{
+  "destination": {
+    "url": "imaps://imap.example.com",
+    "username": "user1@example.com",
+    "password_file": "testdata/passfile1"
+  },
+  "sources": [
+    {
+      "connection": {
+        "url": "imaps://imap.mail.yahoo.com/INBOX",
+        "username": "user@yahoo.com.au",
+        "password": "direct_password"
+      },
+      "target_mailbox": "INBOX"
+    },
+    {
+      "connection": {
+        "url": "imaps://imap.mail.yahoo.com/Bulk",
+        "username": "user@yahoo.com.au",
+        "password_file": "testdata/passfile2"
+      },
+      "target_mailbox": "Junk"
+    }
+  ]
+}

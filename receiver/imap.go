@@ -54,16 +54,16 @@ func buildSeqSet(existing imap.SeqSet, mbStatus *imap.MailboxStatus, maxSize uin
 	return seq
 }
 
-func doFetch(client imap2.Client, existing imap.SeqSet, maxSize uint, result chan<- interface{}) bool {
-	log.Trace("receiver_fetching_messages")
+func doFetch(client imap2.Client, existing imap.SeqSet, maxSize uint, result chan<- interface{}, logger *log.Entry) bool {
+	logger.Trace("receiver_fetching_messages")
 
 	mbStatus := client.Mailbox()
 	if mbStatus == nil {
-		log.Warn("receiver_no_mailbox")
+		logger.Warn("receiver_no_mailbox")
 		return false
 	}
 
-	log.WithFields(log.Fields{
+	logger.WithFields(log.Fields{
 		"name":         mbStatus.Name,
 		"num_messages": mbStatus.Messages,
 		"recent":       mbStatus.Recent,
@@ -76,7 +76,7 @@ func doFetch(client imap2.Client, existing imap.SeqSet, maxSize uint, result cha
 	}
 
 	seqset := buildSeqSet(existing, mbStatus, maxSize)
-	log.WithField("set", seqset).Trace("receiver_fetch_set")
+	logger.WithField("set", seqset).Trace("receiver_fetch_set")
 	if seqset.Empty() {
 		return false
 	}
@@ -91,20 +91,20 @@ func doFetch(client imap2.Client, existing imap.SeqSet, maxSize uint, result cha
 	uids, messages := readMessages(ch)
 
 	if err := <-done; err != nil {
-		log.WithError(err).Warn("receiver_fetch_failed")
+		logger.WithError(err).Warn("receiver_fetch_failed")
 	} else {
-		log.WithFields(log.Fields{"uids": uids}).Trace("receiver_fetch_succeeded")
+		logger.WithFields(log.Fields{"uids": uids}).Trace("receiver_fetch_succeeded")
 		result <- fetchResult{
 			UIDs:     uids,
 			Messages: messages,
 		}
-		log.WithFields(log.Fields{"uids": uids}).Trace("receiver_fetch_succeeded_chanwrite")
+		logger.WithFields(log.Fields{"uids": uids}).Trace("receiver_fetch_succeeded_chanwrite")
 	}
 
 	return false
 }
 
-func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint32]*messageState) interface{} {
+func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint32]*messageState, logger *log.Entry) interface{} {
 	toDelete := map[uint32]*imap.Message{}
 
 	deleteSet := new(imap.SeqSet)
@@ -116,7 +116,7 @@ func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint
 		} else if msg.State == StateDeleted {
 			// Message is already deleted, why are we receiving this?
 			// Send it back and it should be removed.
-			withMessageState(msg).Warn("receiver_message_already_deleted")
+			withMessageState(logger, msg).Warn("receiver_message_already_deleted")
 			result <- deleteResult{UID: msg.UID, State: StateDeleted}
 		}
 	}
@@ -142,13 +142,13 @@ func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint
 			if found {
 				result <- deleteResult{UID: msg.Uid, State: StateDeleted}
 			} else {
-				log.WithFields(log.Fields{"uid": msg.Uid}).Warn("receiver_message_not_deleted_rescheduling")
+				logger.WithFields(log.Fields{"uid": msg.Uid}).Warn("receiver_message_not_deleted_rescheduling")
 				result <- deleteResult{UID: msg.Uid, State: StateAcked}
 			}
 		}
 
 		if err := <-done; err != nil {
-			log.WithError(err).Warn("receiver_delete_failed")
+			logger.WithError(err).Warn("receiver_delete_failed")
 		}
 	}
 
@@ -156,7 +156,7 @@ func doDelete(client imap2.Client, result chan<- interface{}, toProcess map[uint
 	// always seem inconsistent. If the mail server *really* doesn't want to
 	// expunge a message, there's nothing we can do anyway...
 	if err := client.Expunge(nil); err != nil {
-		log.WithError(err).Warn("receiver_expunge_failed")
+		logger.WithError(err).Warn("receiver_expunge_failed")
 	}
 
 	return nil

@@ -27,6 +27,11 @@ import (
 )
 
 func NewReceiver(cfg *Config) (Client, error) {
+	logger := cfg.Logger
+	if logger == nil {
+		logger = log.NewEntry(log.StandardLogger())
+	}
+
 	updateChannel := make(chan client2.Update, 10)
 	c, err := cfg.Factory.NewClient(&imap2.ClientConfig{
 		ConnectionConfig: cfg.ConnectionConfig,
@@ -59,6 +64,7 @@ func NewReceiver(cfg *Config) (Client, error) {
 
 	mr := &mailReceiver{
 		client:        c,
+		logger:        logger,
 		updates:       updateChannel,
 		imapChannel:   make(chan interface{}),
 		ackChannel:    make(chan ackRequest, fetchBufferSize),
@@ -83,9 +89,9 @@ func NewReceiver(cfg *Config) (Client, error) {
 
 func (mr *mailReceiver) Ack(UID uint32, error error) {
 	if error == nil {
-		log.WithField("uid", UID).Trace("receiver_ack_called")
+		mr.logger.WithField("uid", UID).Trace("receiver_ack_called")
 	} else {
-		log.WithError(error).WithField("uid", UID).Trace("receiver_ack_called")
+		mr.logger.WithError(error).WithField("uid", UID).Trace("receiver_ack_called")
 	}
 
 	if UID == 0 {
@@ -93,24 +99,24 @@ func (mr *mailReceiver) Ack(UID uint32, error error) {
 	}
 
 	mr.ackChannel <- ackRequest{UID: UID, Error: error}
-	log.WithField("uid", UID).Trace("receiver_ack_return")
+	mr.logger.WithField("uid", UID).Trace("receiver_ack_return")
 }
 
-func withMessageState(mstate *messageState) *log.Entry {
-	return log.WithFields(log.Fields{
+func withMessageState(parent *log.Entry, mstate *messageState) *log.Entry {
+	return parent.WithFields(log.Fields{
 		"uid":   mstate.UID,
 		"seq":   mstate.SeqNum,
 		"state": mstate.State,
 	})
 }
 
-func logMessageState(mstate *messageState) {
-	withMessageState(mstate).Info("receiver_message_update")
+func logMessageState(parent *log.Entry, mstate *messageState) {
+	withMessageState(parent, mstate).Info("receiver_message_update")
 }
 
 func (mr *mailReceiver) handleFetch(r *fetchResult) uint {
 	var num uint = 0
-	log.WithField("uids", r.UIDs).Trace("receiver_got_fetch_result")
+	mr.logger.WithField("uids", r.UIDs).Trace("receiver_got_fetch_result")
 	for uid, msg := range r.Messages {
 		if _, ok := mr.messages[uid]; !ok {
 			mstate := &messageState{
@@ -120,7 +126,7 @@ func (mr *mailReceiver) handleFetch(r *fetchResult) uint {
 				State:   StateUnacked,
 			}
 			mr.messages[uid] = mstate
-			logMessageState(mstate)
+			logMessageState(mr.logger, mstate)
 			mr.outChannel <- mstate.Message
 			num += 1
 		}
@@ -130,7 +136,7 @@ func (mr *mailReceiver) handleFetch(r *fetchResult) uint {
 }
 
 func (mr *mailReceiver) handleDelete(r *deleteResult) *messageState {
-	e := log.WithFields(log.Fields{"uid": r.UID, "state": r.State})
+	e := mr.logger.WithFields(log.Fields{"uid": r.UID, "state": r.State})
 	if r.State == StateDeleted {
 		e.Info("receiver_message_deleted")
 		delete(mr.messages, r.UID)
@@ -141,7 +147,7 @@ func (mr *mailReceiver) handleDelete(r *deleteResult) *messageState {
 		// Delete failed, try again
 		e.Info("receiver_message_deletion_failed")
 		msg.State = r.State
-		logMessageState(msg)
+		logMessageState(mr.logger, msg)
 		return msg
 	}
 
@@ -152,9 +158,9 @@ func (mr *mailReceiver) handleDelete(r *deleteResult) *messageState {
 
 func (mr *mailReceiver) handleAck(r *ackRequest) *messageState {
 	if r.Error != nil {
-		log.WithError(r.Error).WithField("uid", r.UID).Warn("receiver_ack")
+		mr.logger.WithError(r.Error).WithField("uid", r.UID).Warn("receiver_ack")
 	} else {
-		log.WithField("uid", r.UID).Info("receiver_ack")
+		mr.logger.WithField("uid", r.UID).Info("receiver_ack")
 	}
 
 	if r.Error != nil {
@@ -164,7 +170,7 @@ func (mr *mailReceiver) handleAck(r *ackRequest) *messageState {
 	if msg, ok := mr.messages[r.UID]; ok {
 		if msg.State == StateUnacked {
 			msg.State = StateAcked
-			logMessageState(msg)
+			logMessageState(mr.logger, msg)
 			return msg
 		}
 	}
@@ -176,7 +182,7 @@ func (mr *mailReceiver) handleMessageUpdate(upd client2.Update) bool {
 	switch vv := upd.(type) {
 	case *client2.StatusUpdate:
 		// This is INFO because it often contains useful info to have in the logs
-		log.WithFields(log.Fields{
+		mr.logger.WithFields(log.Fields{
 			"tag":       vv.Status.Tag,
 			"type":      vv.Status.Type,
 			"code":      vv.Status.Code,
@@ -184,9 +190,9 @@ func (mr *mailReceiver) handleMessageUpdate(upd client2.Update) bool {
 			"info":      vv.Status.Info,
 		}).Info("receiver_got_status_update")
 	case *client2.ExpungeUpdate:
-		log.WithField("seq", vv.SeqNum).Trace("receiver_got_expunge_update")
+		mr.logger.WithField("seq", vv.SeqNum).Trace("receiver_got_expunge_update")
 	case *client2.MailboxUpdate:
-		log.WithFields(log.Fields{
+		mr.logger.WithFields(log.Fields{
 			"name":     vv.Mailbox.Name,
 			"messages": vv.Mailbox.Messages,
 		}).Trace("receiver_got_mailbox_update")
@@ -208,7 +214,7 @@ func (mr *mailReceiver) run() {
 	wantDelete := NewCounter() // Do we need to delete
 
 	setState := func(s sstate) {
-		log.WithFields(log.Fields{
+		mr.logger.WithFields(log.Fields{
 			"old": state,
 			"new": s,
 		}).Trace("receiver_state_change")
@@ -216,7 +222,7 @@ func (mr *mailReceiver) run() {
 	}
 
 	for {
-		log.WithFields(log.Fields{
+		mr.logger.WithFields(log.Fields{
 			"state":          state,
 			"want_quit":      wantQuit.IsFlagged(),
 			"want_fetch":     wantFetch.IsFlagged(),
@@ -238,12 +244,12 @@ func (mr *mailReceiver) run() {
 			switch r := _r.(type) {
 			case fetchResult:
 				if state != StateInFetch {
-					log.WithField("state", state).Panic("receiver_fetch_outside_fetch")
+					mr.logger.WithField("state", state).Panic("receiver_fetch_outside_fetch")
 				}
 
 				// If we're quitting, just discard all new fetches
 				if wantQuit.IsFlagged() {
-					log.WithField("uids", r.UIDs).Trace("receiver_ignoring_fetch_quitting")
+					mr.logger.WithField("uids", r.UIDs).Trace("receiver_ignoring_fetch_quitting")
 					break
 				}
 
@@ -251,7 +257,7 @@ func (mr *mailReceiver) run() {
 				_ = mr.handleFetch(&r)
 			case deleteResult:
 				if state != StateInDelete {
-					log.WithField("state", state).Panic("receiver_delete_outside_delete")
+					mr.logger.WithField("state", state).Panic("receiver_delete_outside_delete")
 				}
 
 				if msg := mr.handleDelete(&r); msg != nil {
@@ -260,7 +266,7 @@ func (mr *mailReceiver) run() {
 					wantDelete.FlagIf(!mr.disableDeletions)
 				}
 			default:
-				log.WithField("result", r).Panic("receiver_invalid_result")
+				mr.logger.WithField("result", r).Panic("receiver_invalid_result")
 			}
 		case ack := <-mr.ackChannel:
 			// ACKs should be handled in any state
@@ -274,7 +280,7 @@ func (mr *mailReceiver) run() {
 			break
 		}
 
-		log.WithFields(log.Fields{
+		mr.logger.WithFields(log.Fields{
 			"state":     state,
 			"operation": op,
 		}).Trace("receiver_tick")
@@ -291,7 +297,7 @@ func (mr *mailReceiver) run() {
 				log.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
 			}
 
-			log.WithFields(log.Fields{
+			mr.logger.WithFields(log.Fields{
 				"state":            state,
 				"operation":        op,
 				"want_quit":        wantQuit.IsFlagged(),
@@ -323,10 +329,10 @@ func (mr *mailReceiver) run() {
 				wantDelete.Reset()
 
 				if len(nextToProcess) > 0 {
-					log.Trace("receiver_delete_start")
+					mr.logger.Trace("receiver_delete_start")
 					setState(StateInDelete)
 					go func(toProcess map[uint32]*messageState) {
-						_ = doDelete(mr.client, mr.imapChannel, toProcess)
+						_ = doDelete(mr.client, mr.imapChannel, toProcess, mr.logger)
 						opChan <- OperationDeleteFinish
 					}(nextToProcess)
 					nextToProcess = map[uint32]*messageState{}
@@ -335,29 +341,29 @@ func (mr *mailReceiver) run() {
 			}
 
 			if wantFetch.IsFlagged() {
-				log.Trace("receiver_fetch_start")
+				mr.logger.Trace("receiver_fetch_start")
 				wantFetch.Reset()
 				setState(StateInFetch)
 
 				existing := mr.buildCurrentSequence()
 				go func() {
-					_ = doFetch(mr.client, existing, mr.fetchBufferSize, mr.imapChannel)
+					_ = doFetch(mr.client, existing, mr.fetchBufferSize, mr.imapChannel, mr.logger)
 					opChan <- OperationFetchFinish
 				}()
 			} else if !wantQuit.IsFlagged() {
-				log.Trace("receiver_idle_start")
+				mr.logger.Trace("receiver_idle_start")
 				setState(StateInIDLE)
 				go func(stop <-chan struct{}) {
-					log.Trace("receiver_idle_go_start")
+					mr.logger.Trace("receiver_idle_go_start")
 					err := mr.client.Idle(stop, &client2.IdleOptions{
 						LogoutTimeout: 250 * time.Second, // Yahoo kills us after 5 mintues
 						PollInterval:  mr.idleFallbackInterval,
 					})
 					if err != nil {
-						log.WithError(err).Warn("receiver_idle_failed")
+						mr.logger.WithError(err).Warn("receiver_idle_failed")
 					}
 					opChan <- OperationIDLEFinish
-					log.Trace("receiver_idle_go_end")
+					mr.logger.Trace("receiver_idle_go_end")
 				}(wantStopIdle.Channel())
 			} else {
 				goto done
@@ -371,56 +377,56 @@ func (mr *mailReceiver) run() {
 				wantFetch.Flag()
 				wantStopIdle.Flag()
 			case OperationIDLEFinish:
-				log.Trace("receiver_idle_finish")
+				mr.logger.Trace("receiver_idle_finish")
 				wantStopIdle.Reset()
 				setState(StateNone)
 				opChan <- OperationNone
 			default:
-				log.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
+				mr.logger.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
 			}
 		case StateInFetch:
 			switch op {
 			case OperationNone:
 				break
 			case OperationFetchFinish:
-				log.Trace("receiver_fetch_finish")
+				mr.logger.Trace("receiver_fetch_finish")
 				setState(StateNone)
 				opChan <- OperationNone
 			case OperationTimeout:
 				break
 			default:
-				log.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
+				mr.logger.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
 			}
 		case StateInDelete:
 			switch op {
 			case OperationNone:
 				break
 			case OperationDeleteFinish:
-				log.Trace("receiver_delete_finish")
+				mr.logger.Trace("receiver_delete_finish")
 				setState(StateNone)
 				opChan <- OperationNone
 			case OperationTimeout:
 				wantFetch.Flag()
 				break
 			default:
-				log.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
+				mr.logger.WithFields(log.Fields{"state": state, "operation": op}).Panic("invalid_operation_for_state")
 			}
 		}
 	}
 
 done:
-	log.WithField("state", state).Trace("receiver_loop_exit")
+	mr.logger.WithField("state", state).Trace("receiver_loop_exit")
 
 	mr.hasQuit <- struct{}{}
-	log.Trace("receiver_proc_quit")
+	mr.logger.Trace("receiver_proc_quit")
 }
 
 func (mr *mailReceiver) Close() {
-	log.Trace("receiver_close_invoked")
+	mr.logger.Trace("receiver_close_invoked")
 	mr.wantQuit <- struct{}{}
-	log.Trace("receiver_close_waiting_for_quit")
+	mr.logger.Trace("receiver_close_waiting_for_quit")
 	<-mr.hasQuit
-	log.Trace("receiver_close_have_quit")
+	mr.logger.Trace("receiver_close_have_quit")
 	_ = mr.client.Logout()
-	log.Trace("receiver_close_logout")
+	mr.logger.Trace("receiver_close_logout")
 }

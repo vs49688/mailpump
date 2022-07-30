@@ -21,6 +21,8 @@ package receiver
 import (
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	imap2 "github.com/vs49688/mailpump/imap"
@@ -29,6 +31,8 @@ import (
 type Config struct {
 	imap2.ConnectionConfig
 	Factory imap2.Factory
+
+	Logger *log.Entry
 
 	IDLEFallbackInterval time.Duration
 	BatchSize            uint
@@ -146,6 +150,8 @@ func (s sstate) String() string {
 
 type mailReceiver struct {
 	client imap2.Client
+
+	logger *log.Entry
 
 	// client -> imap handler, state updates
 	updates chan client.Update

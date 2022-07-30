@@ -6,6 +6,7 @@
   },
   "sources": [
     {
+      "name": "yahoo-user-inbox",
       "connection": {
         "url": "imaps://imap.mail.yahoo.com/INBOX",
         "username": "user@yahoo.com.au",

@@ -21,6 +21,7 @@ package run_multi
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"time"
 
@@ -28,6 +29,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/vs49688/mailpump/cmd/config"
+	"github.com/vs49688/mailpump/imap"
 	"github.com/vs49688/mailpump/ingest"
 	"github.com/vs49688/mailpump/receiver"
 )
@@ -43,6 +45,7 @@ const (
 )
 
 type Source struct {
+	Name                 string            `json:"name,omitempty"`
 	Connection           config.IMAPConfig `json:"connection"`
 	TargetMailbox        string            `json:"target_mailbox"`
 	IDLEFallbackInterval time.Duration     `json:"idle_fallback_interval"`
@@ -52,16 +55,36 @@ type Source struct {
 	FetchMaxInterval     time.Duration     `json:"fetch_max_interval"`
 }
 
+func makeSourceName(username string, cfg *imap.ConnectionConfig) string {
+	u := url.URL{
+		User: url.User(username),
+		Host: cfg.HostPort,
+		Path: cfg.Mailbox,
+	}
+
+	if cfg.TLS {
+		u.Scheme = "imaps"
+	} else {
+		u.Scheme = "imap"
+	}
+
+	return u.String()
+}
+
 func (src *Source) Resolve(logger *log.Logger) (receiver.Config, error) {
 	connConfig, factory, err := src.Connection.Resolve()
 	if err != nil {
 		return receiver.Config{}, err
 	}
 
+	if src.Name == "" {
+		src.Name = makeSourceName(src.Connection.Username, &connConfig)
+	}
+
 	cfg := receiver.Config{
 		ConnectionConfig:     connConfig,
 		Factory:              factory,
-		Logger:               log.NewEntry(logger),
+		Logger:               logger.WithField("source", src.Name),
 		IDLEFallbackInterval: src.IDLEFallbackInterval,
 		BatchSize:            src.BatchSize,
 		FetchBufferSize:      src.FetchBufferSize,

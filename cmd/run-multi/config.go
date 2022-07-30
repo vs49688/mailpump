@@ -24,6 +24,8 @@ import (
 	"os"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/urfave/cli/v2"
 	"github.com/vs49688/mailpump/cmd/config"
 	"github.com/vs49688/mailpump/ingest"
@@ -50,7 +52,7 @@ type Source struct {
 	FetchMaxInterval     time.Duration     `json:"fetch_max_interval"`
 }
 
-func (src *Source) Resolve() (receiver.Config, error) {
+func (src *Source) Resolve(logger *log.Logger) (receiver.Config, error) {
 	connConfig, factory, err := src.Connection.Resolve()
 	if err != nil {
 		return receiver.Config{}, err
@@ -59,6 +61,7 @@ func (src *Source) Resolve() (receiver.Config, error) {
 	cfg := receiver.Config{
 		ConnectionConfig:     connConfig,
 		Factory:              factory,
+		Logger:               log.NewEntry(logger),
 		IDLEFallbackInterval: src.IDLEFallbackInterval,
 		BatchSize:            src.BatchSize,
 		FetchBufferSize:      src.FetchBufferSize,
@@ -96,6 +99,7 @@ type Configuration struct {
 
 	ResolvedDestination ingest.Config     `json:"-"`
 	ResolvedSources     []receiver.Config `json:"-"`
+	Logger              *log.Logger       `json:"-"`
 }
 
 func DefaultConfig() Configuration {
@@ -104,6 +108,7 @@ func DefaultConfig() Configuration {
 		ConfigPath:  "config.json",
 		LogLevel:    DefaultLogLevel,
 		LogFormat:   DefaultLogFormat,
+		Logger:      log.StandardLogger(),
 	}
 }
 
@@ -149,7 +154,7 @@ func (cfg *Configuration) Resolve() error {
 
 	cfg.ResolvedSources = make([]receiver.Config, len(cfg.Sources))
 	for i := range cfg.Sources {
-		cfg.ResolvedSources[i], err = (&cfg.Sources[i]).Resolve()
+		cfg.ResolvedSources[i], err = (&cfg.Sources[i]).Resolve(cfg.Logger)
 		if err != nil {
 			return err
 		}

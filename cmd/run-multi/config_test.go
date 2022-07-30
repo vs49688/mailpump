@@ -3,6 +3,8 @@ package run_multi
 import (
 	"testing"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/vs49688/mailpump/cmd/config"
 	"github.com/vs49688/mailpump/ingest"
@@ -54,5 +56,6 @@ func TestConfigParse(t *testing.T) {
 		},
 		LogLevel:  "info",
 		LogFormat: "text",
+		Logger:    logrus.StandardLogger(),
 	}, cfg)
 }

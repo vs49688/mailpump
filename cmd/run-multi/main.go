@@ -48,11 +48,11 @@ func RegisterCommand(app *cli.App) *cli.App {
 func run(_ *cli.Context, cfg *Configuration) error {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err == nil {
-		log.SetLevel(logLevel)
+		cfg.Logger.SetLevel(logLevel)
 	}
 
 	if cfg.LogFormat == "json" {
-		log.SetFormatter(&log.JSONFormatter{})
+		cfg.Logger.SetFormatter(&log.JSONFormatter{})
 	}
 
 	doneChan := make(chan error)
@@ -73,7 +73,7 @@ func run(_ *cli.Context, cfg *Configuration) error {
 
 	p, err := multipump.NewPump(&pumpConfig)
 	if err != nil {
-		log.Fatal(err)
+		cfg.Logger.Fatal(err)
 	}
 	defer p.Close()
 
@@ -84,18 +84,18 @@ func run(_ *cli.Context, cfg *Configuration) error {
 	for {
 		select {
 		case sig := <-sigchan:
-			log.WithFields(log.Fields{"signal": sig, "count": sigcount}).Trace("caught_signal")
+			cfg.Logger.WithFields(log.Fields{"signal": sig, "count": sigcount}).Trace("caught_signal")
 
 			sigcount += 1
 			if sigcount > 1 {
-				log.WithFields(log.Fields{"signal": sig}).Warn("received_interrupt_force_exit")
+				cfg.Logger.WithFields(log.Fields{"signal": sig}).Warn("received_interrupt_force_exit")
 				os.Exit(1)
 			}
-			log.WithFields(log.Fields{"signal": sig}).Info("received_interrupt")
+			cfg.Logger.WithFields(log.Fields{"signal": sig}).Info("received_interrupt")
 
 			close(stopChan)
 		case <-doneChan:
-			log.Info("pump_terminated")
+			cfg.Logger.Info("pump_terminated")
 			return nil
 		}
 	}

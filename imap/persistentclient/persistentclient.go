@@ -209,9 +209,11 @@ func makeAndInitClient(cfg *Config, readOnly bool) (imap.Client, error) {
 		return nil, err
 	}
 
-	if _, err = c.Select(cfg.Mailbox, readOnly); err != nil {
-		_ = c.Logout()
-		return nil, err
+	if cfg.Mailbox != "" {
+		if _, err = c.Select(cfg.Mailbox, readOnly); err != nil {
+			_ = c.Logout()
+			return nil, err
+		}
 	}
 
 	return c, err

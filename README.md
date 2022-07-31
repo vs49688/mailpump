@@ -13,7 +13,7 @@ to the source and one connection to the destination. Many `single` instances poi
 potentially overwhelm the destination server. For this case, `multi` mode should be preferred. In `multi` mode,
 multiple source servers can be specified, as well as a single destination server, thus relieving pressure on the target.
 
-For `multi`-mode documentation, please see [here](multi).
+For `multi`-mode documentation, please see [here](multi.md).
 
 ```
 NAME:

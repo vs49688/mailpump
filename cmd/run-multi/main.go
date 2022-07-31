@@ -58,9 +58,9 @@ func run(_ *cli.Context, cfg *Configuration) error {
 	doneChan := make(chan error)
 	stopChan := make(chan struct{})
 
-	targetMailboxes := make([]string, len(cfg.Sources))
-	for i, s := range cfg.Sources {
-		targetMailboxes[i] = s.TargetMailbox
+	targetMailboxes := make([]string, 0, len(cfg.Sources))
+	for _, src := range cfg.Sources {
+		targetMailboxes = append(targetMailboxes, src.TargetMailbox)
 	}
 
 	pumpConfig := multipump.Config{

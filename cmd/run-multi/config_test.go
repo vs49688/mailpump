@@ -30,9 +30,8 @@ func TestConfigParse(t *testing.T) {
 			Transport:    "persistent",
 			OAuth2:       config.DefaultOAuth2Config(),
 		},
-		Sources: []Source{
-			{
-				Name: "yahoo-user-inbox",
+		Sources: map[string]*Source{
+			"yahoo-user-inbox": {
 				Connection: config.IMAPConfig{
 					URL:        "imaps://imap.mail.yahoo.com/INBOX",
 					Username:   "user@yahoo.com.au",
@@ -43,8 +42,7 @@ func TestConfigParse(t *testing.T) {
 				},
 				TargetMailbox: "INBOX",
 			},
-			{
-				Name: "imaps://user%40yahoo.com.au@imap.mail.yahoo.com:993/Bulk",
+			"yahoo-user-inbox-spam": {
 				Connection: config.IMAPConfig{
 					URL:          "imaps://imap.mail.yahoo.com/Bulk",
 					Username:     "user@yahoo.com.au",

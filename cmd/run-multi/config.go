@@ -45,7 +45,6 @@ const (
 )
 
 type Source struct {
-	Name                 string            `json:"name,omitempty"`
 	Connection           config.IMAPConfig `json:"connection"`
 	TargetMailbox        string            `json:"target_mailbox"`
 	IDLEFallbackInterval time.Duration     `json:"idle_fallback_interval"`
@@ -71,20 +70,16 @@ func makeSourceName(username string, cfg *imap.ConnectionConfig) string {
 	return u.String()
 }
 
-func (src *Source) Resolve(logger *log.Logger) (receiver.Config, error) {
+func (src *Source) Resolve(logger *log.Entry) (receiver.Config, error) {
 	connConfig, factory, err := src.Connection.Resolve()
 	if err != nil {
 		return receiver.Config{}, err
 	}
 
-	if src.Name == "" {
-		src.Name = makeSourceName(src.Connection.Username, &connConfig)
-	}
-
 	cfg := receiver.Config{
 		ConnectionConfig:     connConfig,
 		Factory:              factory,
-		Logger:               logger.WithField("source", src.Name),
+		Logger:               logger,
 		IDLEFallbackInterval: src.IDLEFallbackInterval,
 		BatchSize:            src.BatchSize,
 		FetchBufferSize:      src.FetchBufferSize,
@@ -115,10 +110,10 @@ func (src *Source) Resolve(logger *log.Logger) (receiver.Config, error) {
 type Configuration struct {
 	ConfigPath string `json:"-"`
 
-	Destination config.IMAPConfig `json:"destination,omitempty"`
-	Sources     []Source          `json:"sources,omitempty"`
-	LogLevel    string            `json:"log_level,omitempty"`
-	LogFormat   string            `json:"log_format,omitempty"`
+	Destination config.IMAPConfig  `json:"destination,omitempty"`
+	Sources     map[string]*Source `json:"sources,omitempty"`
+	LogLevel    string             `json:"log_level,omitempty"`
+	LogFormat   string             `json:"log_format,omitempty"`
 
 	ResolvedDestination ingest.Config     `json:"-"`
 	ResolvedSources     []receiver.Config `json:"-"`
@@ -175,12 +170,14 @@ func (cfg *Configuration) Resolve() error {
 		Factory:          factory,
 	}
 
-	cfg.ResolvedSources = make([]receiver.Config, len(cfg.Sources))
-	for i := range cfg.Sources {
-		cfg.ResolvedSources[i], err = (&cfg.Sources[i]).Resolve(cfg.Logger)
+	cfg.ResolvedSources = make([]receiver.Config, 0, len(cfg.Sources))
+	for name, src := range cfg.Sources {
+		rs, err := src.Resolve(cfg.Logger.WithField("source", name))
 		if err != nil {
 			return err
 		}
+
+		cfg.ResolvedSources = append(cfg.ResolvedSources, rs)
 	}
 
 	return nil

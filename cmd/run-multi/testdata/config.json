@@ -4,9 +4,8 @@
     "username": "user1@example.com",
     "password_file": "testdata/passfile1"
   },
-  "sources": [
-    {
-      "name": "yahoo-user-inbox",
+  "sources": {
+    "yahoo-user-inbox": {
       "connection": {
         "url": "imaps://imap.mail.yahoo.com/INBOX",
         "username": "user@yahoo.com.au",
@@ -14,7 +13,7 @@
       },
       "target_mailbox": "INBOX"
     },
-    {
+    "yahoo-user-inbox-spam": {
       "connection": {
         "url": "imaps://imap.mail.yahoo.com/Bulk",
         "username": "user@yahoo.com.au",
@@ -22,5 +21,5 @@
       },
       "target_mailbox": "Junk"
     }
-  ]
+  }
 }

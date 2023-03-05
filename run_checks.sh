@@ -13,6 +13,8 @@ else
   STAGES=$1
 fi
 
+set -x
+
 function stage_build() {
   go build ./...
 }

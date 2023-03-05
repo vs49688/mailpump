@@ -1,5 +1,4 @@
-#!/usr/bin/env nix-shell
-#!nix-shell --pure -i bash -p go -p gotools -p gosec -p mockgen
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -9,7 +8,7 @@ if [[ $# -gt 1 ]]; then
 fi
 
 if [[ $# -eq 0 ]]; then
-  STAGES="tidy vendor fmt goimports gosec build vet race test"
+  STAGES="dep fmt goimports gosec build vet race test vuln"
 else
   STAGES=$1
 fi
@@ -45,16 +44,17 @@ function stage_race() {
   go build -race ./...
 }
 
-function stage_vendor() {
-  go mod vendor
-}
-
-function stage_tidy() {
+function stage_dep() {
   go mod tidy
+  go mod vendor
 }
 
 function stage_test() {
   go test ./...
+}
+
+function stage_vuln() {
+  govulncheck ./...
 }
 
 set +e

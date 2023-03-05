@@ -1,4 +1,4 @@
-{ buildGoModule, gotools, gosec, mockgen, version }:
+{ buildGoModule, gotools, gosec, mockgen, govulncheck, version }:
 buildGoModule {
   inherit version;
 
@@ -12,5 +12,6 @@ buildGoModule {
     gotools
     gosec
     mockgen
+    govulncheck
   ];
 }

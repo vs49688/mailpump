@@ -8,16 +8,15 @@ jobs:
     strategy:
       matrix:
         stage:
+          - dep
           - fmt
-          - generate
           - goimports
-          - tidy
-          - vendor
           - gosec
           - build
           - vet
           - race
           - test
+          - vuln
     steps:
       - uses: actions/checkout@v2
       - uses: cachix/install-nix-action@v16

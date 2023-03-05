@@ -1,6 +1,6 @@
 module github.com/vs49688/mailpump
 
-go 1.18
+go 1.19
 
 require (
 	github.com/emersion/go-imap v1.2.1

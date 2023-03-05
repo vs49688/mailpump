@@ -7,15 +7,15 @@
         mailpump = prev.callPackage ./default.nix {
           version = self.lastModifiedDate;
 
-          buildGoModule = prev.buildGo118Module;
+          buildGoModule = prev.buildGo119Module;
           gotools = prev.gotools.override {
-            buildGoModule = prev.buildGo118Module;
+            buildGoModule = prev.buildGo119Module;
           };
           gosec = prev.gosec.override {
-            buildGoModule = prev.buildGo118Module;
+            buildGoModule = prev.buildGo119Module;
           };
 
-          mockgen = prev.mockgen.override { buildGoModule = prev.buildGo118Module; };
+          mockgen = prev.mockgen.override { buildGoModule = prev.buildGo119Module; };
         };
       };
     };

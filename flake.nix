@@ -6,16 +6,6 @@
       default = final: prev: {
         mailpump = prev.callPackage ./default.nix {
           version = self.lastModifiedDate;
-
-          buildGoModule = prev.buildGo119Module;
-          gotools = prev.gotools.override {
-            buildGoModule = prev.buildGo119Module;
-          };
-          gosec = prev.gosec.override {
-            buildGoModule = prev.buildGo119Module;
-          };
-
-          mockgen = prev.mockgen.override { buildGoModule = prev.buildGo119Module; };
         };
       };
     };

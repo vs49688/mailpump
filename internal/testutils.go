@@ -19,8 +19,9 @@
 package internal
 
 import (
-	"net"
 	"testing"
+
+	"golang.org/x/net/nettest"
 
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
@@ -49,10 +50,10 @@ func BuildTestIMAPServer(t *testing.T) (*server.Server, string, *memory.Mailbox)
 
 	s.AllowInsecureAuth = true
 
-	l, err := net.Listen("tcp", "localhost:0")
-	assert.NoError(t, err)
+	l, err := nettest.NewLocalListener("tcp")
 	if err != nil {
-		t.FailNow()
+		t.Logf("%v", err)
+		t.Skip()
 	}
 
 	go func() { err = s.Serve(l) }()

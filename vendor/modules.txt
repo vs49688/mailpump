@@ -59,6 +59,9 @@ github.com/urfave/cli/v2
 # github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673
 ## explicit
 github.com/xrash/smetrics
+# golang.org/x/net v0.15.0
+## explicit; go 1.17
+golang.org/x/net/nettest
 # golang.org/x/oauth2 v0.12.0
 ## explicit; go 1.18
 golang.org/x/oauth2

@@ -1,6 +1,8 @@
 {
   description = "MailPump";
 
+  inputs.nixpkgs.url = github:NixOS/nixpkgs;
+
   outputs = { self, nixpkgs }: {
     overlays = {
       default = final: prev: {

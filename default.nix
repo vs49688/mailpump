@@ -1,4 +1,7 @@
-{ buildGoModule, gotools, gosec, mockgen, version }:
+{ buildGoModule
+, version
+}:
+
 buildGoModule {
   inherit version;
 
@@ -6,11 +9,5 @@ buildGoModule {
 
   src = ./.;
 
-  vendorSha256 = null;
-
-  passthru.devTools = [
-    gotools
-    gosec
-    mockgen
-  ];
+  vendorHash = null;
 }

@@ -3,7 +3,13 @@
 
   inputs.nixpkgs.url = github:NixOS/nixpkgs;
 
-  outputs = { self, nixpkgs }: {
+  outputs = { self, nixpkgs }: let
+    forAllSystems = function:
+      nixpkgs.lib.genAttrs [
+        "x86_64-linux"
+        "aarch64-linux"
+      ] (system: function nixpkgs.legacyPackages.${system});
+  in {
     overlays = {
       default = final: prev: {
         mailpump = prev.callPackage ./default.nix {
@@ -12,22 +18,19 @@
       };
     };
 
-    packages.x86_64-linux = let
-      pkgs = import nixpkgs {
-        system = "x86_64-linux";
-        overlays = [ self.overlays.default ];
+    packages = forAllSystems (pkgs: rec {
+      mailpump = pkgs.callPackage ./default.nix {
+        version = self.lastModifiedDate;
       };
-    in rec {
-      inherit (pkgs) mailpump;
-
-      default = mailpump;
 
       mailpump-static = mailpump.overrideAttrs(old: {
         ldflags     = [ "-s" "-w" ];
         CGO_ENABLED = 0;
       });
 
-      ci = pkgs.stdenvNoCC.mkDerivation rec {
+      default = mailpump;
+
+      ci = pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
         inherit (mailpump) version;
 
         pname = "mailpump-ci";
@@ -38,18 +41,14 @@
           mkdir -p $out
 
           cp "${mailpump-static}/bin/mailpump" \
-            "$out/mailpump-${version}-${mailpump-static.stdenv.hostPlatform.system}"
-          chmod 0755 "$out/mailpump-${version}-${mailpump-static.stdenv.hostPlatform.system}"
+            "$out/mailpump-${finalAttrs.version}-${mailpump-static.stdenv.hostPlatform.system}"
+          chmod 0755 "$out/mailpump-${finalAttrs.version}-${mailpump-static.stdenv.hostPlatform.system}"
 
           cd "$out" && for i in *; do
             sha256sum -b "$i" > "$i.sha256"
           done
         '';
-      };
-    };
-
-    devShells.x86_64-linux.default = self.packages.x86_64-linux.mailpump.overrideAttrs(old: {
-      nativeBuildInputs = old.nativeBuildInputs ++ old.passthru.devTools;
+      });
     });
   };
 }

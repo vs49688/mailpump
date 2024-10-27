@@ -7,3 +7,5 @@
 /env.dev
 /multiconfig.json
 /result
+
+dist/

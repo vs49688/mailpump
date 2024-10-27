@@ -4,3 +4,6 @@
 /coverage.out
 /pass-*
 
+/env.dev
+/multiconfig.json
+/result

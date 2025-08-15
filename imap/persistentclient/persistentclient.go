@@ -27,8 +27,8 @@ import (
 
 	goImapClient "github.com/emersion/go-imap/client"
 	log "github.com/sirupsen/logrus"
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/imap/client"
+	"git.vs49688.net/zane/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/imap/client"
 )
 
 var errConnectionClosed = errors.New("connection closed")

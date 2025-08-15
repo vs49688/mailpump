@@ -25,8 +25,8 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v2"
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/pump"
+	"git.vs49688.net/zane/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/pump"
 )
 
 func makeFlagNames(name string, prefix string) (string, string, []string) {

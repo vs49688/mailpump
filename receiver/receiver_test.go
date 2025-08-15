@@ -25,17 +25,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vs49688/mailpump/internal"
+	"git.vs49688.net/zane/mailpump/internal"
 
-	imap2 "github.com/vs49688/mailpump/imap"
+	imap2 "git.vs49688.net/zane/mailpump/imap"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/vs49688/mailpump/imap/client"
-	"github.com/vs49688/mailpump/imap/persistentclient"
-	"github.com/vs49688/mailpump/ingest"
+	"git.vs49688.net/zane/mailpump/imap/client"
+	"git.vs49688.net/zane/mailpump/imap/persistentclient"
+	"git.vs49688.net/zane/mailpump/ingest"
 )
 
 func makeTestMessage(t *testing.T, messageID string) (*imap.Message, int32) {

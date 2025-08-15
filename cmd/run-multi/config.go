@@ -28,10 +28,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/urfave/cli/v2"
-	"github.com/vs49688/mailpump/cmd/config"
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/ingest"
-	"github.com/vs49688/mailpump/receiver"
+	"git.vs49688.net/zane/mailpump/cmd/config"
+	"git.vs49688.net/zane/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/ingest"
+	"git.vs49688.net/zane/mailpump/receiver"
 )
 
 const (

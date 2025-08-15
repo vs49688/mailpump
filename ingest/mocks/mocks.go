@@ -9,7 +9,7 @@ import (
 
 	imap "github.com/emersion/go-imap"
 	gomock "github.com/golang/mock/gomock"
-	ingest "github.com/vs49688/mailpump/ingest"
+	ingest "git.vs49688.net/zane/mailpump/ingest"
 )
 
 // MockClient is a mock of Client interface.

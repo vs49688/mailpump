@@ -34,9 +34,9 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/urfave/cli/v2"
 
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/imap/client"
-	"github.com/vs49688/mailpump/imap/persistentclient"
+	"git.vs49688.net/zane/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/imap/client"
+	"git.vs49688.net/zane/mailpump/imap/persistentclient"
 	"golang.org/x/oauth2"
 )
 

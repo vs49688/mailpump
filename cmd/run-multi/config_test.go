@@ -6,8 +6,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vs49688/mailpump/cmd/config"
-	"github.com/vs49688/mailpump/ingest"
+	"git.vs49688.net/zane/mailpump/cmd/config"
+	"git.vs49688.net/zane/mailpump/ingest"
 )
 
 func TestConfigParse(t *testing.T) {

@@ -23,7 +23,7 @@ import (
 	"github.com/emersion/go-sasl"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"github.com/vs49688/mailpump/cmd/config"
+	"git.vs49688.net/zane/mailpump/cmd/config"
 	"golang.org/x/oauth2"
 )
 

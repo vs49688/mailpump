@@ -24,8 +24,8 @@ import (
 
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
-	"github.com/vs49688/mailpump/ingest"
-	"github.com/vs49688/mailpump/receiver"
+	"git.vs49688.net/zane/mailpump/ingest"
+	"git.vs49688.net/zane/mailpump/receiver"
 )
 
 func makeReceivers(sources []receiver.Config) ([]receiver.Client, error) {

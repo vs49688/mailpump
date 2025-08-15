@@ -21,9 +21,9 @@ package pump
 import (
 	"time"
 
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/ingest"
-	"github.com/vs49688/mailpump/receiver"
+	"git.vs49688.net/zane/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/ingest"
+	"git.vs49688.net/zane/mailpump/receiver"
 )
 
 type Config struct {

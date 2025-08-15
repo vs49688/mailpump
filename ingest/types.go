@@ -20,7 +20,7 @@ package ingest
 
 import (
 	"github.com/emersion/go-imap"
-	imap2 "github.com/vs49688/mailpump/imap"
+	imap2 "git.vs49688.net/zane/mailpump/imap"
 )
 
 type Config struct {

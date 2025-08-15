@@ -21,7 +21,7 @@ package receiver
 import (
 	"github.com/emersion/go-imap"
 	log "github.com/sirupsen/logrus"
-	imap2 "github.com/vs49688/mailpump/imap"
+	imap2 "git.vs49688.net/zane/mailpump/imap"
 )
 
 // buildCurrentSequence builds an imap.SeqSet instance containing

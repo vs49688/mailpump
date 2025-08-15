@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-imap/client"
-	"github.com/vs49688/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/imap"
 )
 
 type Factory struct{}

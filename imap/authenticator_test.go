@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vs49688/mailpump/internal"
+	"git.vs49688.net/zane/mailpump/internal"
 
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-imap/server"

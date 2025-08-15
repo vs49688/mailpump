@@ -24,7 +24,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/vs49688/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/imap"
 )
 
 func TestIdleCancellation(t *testing.T) {

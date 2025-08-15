@@ -1,6 +1,6 @@
 package main
 
-import "github.com/vs49688/mailpump/cmd"
+import "git.vs49688.net/zane/mailpump/cmd"
 
 func main() {
 	cmd.Main()

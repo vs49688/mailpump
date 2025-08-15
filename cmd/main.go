@@ -23,9 +23,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"github.com/vs49688/mailpump/cmd/oauthlogin"
-	"github.com/vs49688/mailpump/cmd/run"
-	run_multi "github.com/vs49688/mailpump/cmd/run-multi"
+	"git.vs49688.net/zane/mailpump/cmd/oauthlogin"
+	"git.vs49688.net/zane/mailpump/cmd/run"
+	run_multi "git.vs49688.net/zane/mailpump/cmd/run-multi"
 )
 
 func Main() {

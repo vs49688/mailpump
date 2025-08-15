@@ -1,4 +1,4 @@
-module github.com/vs49688/mailpump
+module git.vs49688.net/zane/mailpump
 
 go 1.23.0
 

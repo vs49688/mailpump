@@ -25,8 +25,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"github.com/vs49688/mailpump/cmd/config"
-	"github.com/vs49688/mailpump/pump"
+	"git.vs49688.net/zane/mailpump/cmd/config"
+	"git.vs49688.net/zane/mailpump/pump"
 )
 
 func RegisterCommand(app *cli.App) *cli.App {

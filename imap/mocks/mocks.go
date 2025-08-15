@@ -12,7 +12,7 @@ import (
 	client "github.com/emersion/go-imap/client"
 	sasl "github.com/emersion/go-sasl"
 	gomock "github.com/golang/mock/gomock"
-	imap0 "github.com/vs49688/mailpump/imap"
+	imap0 "git.vs49688.net/zane/mailpump/imap"
 )
 
 // MockClient is a mock of Client interface.

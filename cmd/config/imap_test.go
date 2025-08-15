@@ -9,10 +9,10 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/vs49688/mailpump/imap"
-	"github.com/vs49688/mailpump/imap/client"
-	mock_imap "github.com/vs49688/mailpump/imap/mocks"
-	"github.com/vs49688/mailpump/imap/persistentclient"
+	"git.vs49688.net/zane/mailpump/imap"
+	"git.vs49688.net/zane/mailpump/imap/client"
+	mock_imap "git.vs49688.net/zane/mailpump/imap/mocks"
+	"git.vs49688.net/zane/mailpump/imap/persistentclient"
 )
 
 func getTestIMAPConfig() IMAPConfig {

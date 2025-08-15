@@ -18,7 +18,7 @@
 
 package persistentclient
 
-import "github.com/vs49688/mailpump/imap"
+import "git.vs49688.net/zane/mailpump/imap"
 
 func (f Factory) NewClient(cfg *imap.ClientConfig) (imap.Client, error) {
 	c, err := NewClient(&Config{
